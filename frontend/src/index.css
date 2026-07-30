@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+@theme {
+
+  --color-agane-bg: #fdfaf6;
+  --color-agane-surface: #f7f4ef;
+  --color-agane-card: #ffffff;
+
+  --color-agane-text: #2f2e2c;
+  --color-agane-border: #e8e5df;
+
+}
+
+
+body {
+  margin: 0;
+  background: #fdfaf6;
+  color: #2f2e2c;
+  font-family: Georgia, "Times New Roman", serif;
+}
