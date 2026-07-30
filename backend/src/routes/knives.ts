@@ -1,12 +1,13 @@
 import { Router } from "express";
 import multer from "multer";
-import path from "path";
 import { prisma } from "../prisma";
 
 
 const router = Router();
 
 
+
+// IMAGE STORAGE
 
 const storage = multer.diskStorage({
 
@@ -22,7 +23,8 @@ const storage = multer.diskStorage({
     const uniqueName =
       Date.now() +
       "-" +
-      file.originalname;
+      file.originalname
+        .replace(/\s+/g, "-");
 
 
     cb(null, uniqueName);
@@ -32,9 +34,11 @@ const storage = multer.diskStorage({
 });
 
 
+
 const upload = multer({
   storage
 });
+
 
 
 
@@ -46,25 +50,26 @@ router.get("/", async (_req, res) => {
 
   try {
 
-    const knives =
-      await prisma.knife.findMany({
-        orderBy:{
-          createdAt:"desc"
-        }
-      });
+    const knives = await prisma.knife.findMany({
+      orderBy:{
+        createdAt:"desc"
+      }
+    });
 
 
     res.json(knives);
 
 
-  } catch(error){
+  } catch(error) {
+
 
     console.error(error);
 
-    res.status(500)
-      .json({
-        error:"Failed to fetch knives"
-      });
+
+    res.status(500).json({
+      error:"Failed to fetch knives"
+    });
+
 
   }
 
@@ -75,12 +80,16 @@ router.get("/", async (_req, res) => {
 
 
 
-// CREATE KNIFE WITH IMAGES
+
+
+
+// CREATE KNIFE WITH MULTIPLE IMAGES
 
 router.post(
   "/",
   upload.array("images", 10),
-  async (req,res)=>{
+
+  async (req, res) => {
 
 
     try {
@@ -93,9 +102,10 @@ router.post(
 
       const imagePaths =
         files?.map(
-          file =>
-            `/uploads/${file.filename}`
+          file => `/uploads/${file.filename}`
         ) || [];
+
+
 
 
 
@@ -104,35 +114,61 @@ router.post(
 
           data:{
 
-            title:req.body.title,
 
-            slug:req.body.slug,
+            title:
+              req.body.title,
 
-            maker:req.body.maker,
 
-            origin:req.body.origin,
+            slug:
+              req.body.slug,
 
-            steel:req.body.steel,
 
-            length:req.body.length,
 
-            handle:req.body.handle,
+            maker:
+              req.body.maker,
+
+
+
+            origin:
+              req.body.origin,
+
+
+
+            steel:
+              req.body.steel,
+
+
+
+            length:
+              req.body.length,
+
+
+
+            handle:
+              req.body.handle,
+
+
 
             weight:
               req.body.weight
-              ? Number(req.body.weight)
-              : null,
+                ? Number(req.body.weight)
+                : null,
+
 
 
             description:
               req.body.description,
 
 
+
             price:
               Number(req.body.price),
 
 
-            images:imagePaths
+
+            images:
+              imagePaths
+
 
           }
 
@@ -140,18 +176,22 @@ router.post(
 
 
 
+
       res.json(knife);
 
 
-    } catch(error){
+
+    } catch(error) {
 
 
-      console.error(error);
+      console.error("CREATE KNIFE ERROR:", error);
 
 
-      res.status(500)
-      .json({
+
+      res.status(500).json({
+
         error:"Failed to create knife"
+
       });
 
 
@@ -159,7 +199,11 @@ router.post(
 
 
   }
+
 );
+
+
+
 
 
 

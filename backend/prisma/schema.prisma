@@ -2,32 +2,42 @@ generator client {
   provider = "prisma-client-js"
 }
 
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
+
+
 model Knife {
+
   id String @id @default(uuid())
+
+  title String
 
   slug String @unique
 
-  title String
   maker String
 
   origin String?
-  steel  String?
-  length String?
-  handle String?
-  weight Int?
 
-  description String
+  steel String?
+
+  bladeType String?
+
+  length String?
+
+  handle String?
+
+  weight Float?
 
   price Int
 
-  images String[]
+  description String?
 
-  status String @default("available")
+  images Json
 
   createdAt DateTime @default(now())
+
 }
