@@ -2,339 +2,529 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 
+
 export default function NewCollaboration(){
 
 
-  const navigate = useNavigate();
+const navigate = useNavigate();
 
 
 
-  const [form,setForm] = useState({
+const [loading,setLoading] =
+useState(false);
 
-    maker:"",
-    title:"",
-    description:"",
-    quantity:"",
-    releaseDate:"",
-    image:""
 
-  });
 
+const [error,setError] =
+useState("");
 
 
 
-  const handleChange = (
-    e:React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  )=>{
 
 
-    setForm({
+const [form,setForm] =
+useState({
 
-      ...form,
+  maker:"",
+  title:"",
+  description:"",
+  quantity:"",
+  status:"upcoming",
+  releaseDate:""
 
-      [e.target.name]:e.target.value
+});
 
-    });
 
 
-  };
 
 
+const [image,setImage] =
+useState<File | null>(null);
 
 
 
-  const handleSubmit = async(
-    e:React.FormEvent
-  )=>{
 
 
-    e.preventDefault();
 
 
+function handleChange(
+e:React.ChangeEvent<
+HTMLInputElement |
+HTMLTextAreaElement |
+HTMLSelectElement
+>
+){
 
-    try{
 
+setForm({
 
-      const response =
-        await fetch(
-          "http://localhost:8080/api/collaborations",
-          {
+...form,
 
-            method:"POST",
+[e.target.name]:
+e.target.value
 
-            headers:{
-              "Content-Type":"application/json"
-            },
+});
 
 
-            body:JSON.stringify({
+}
 
-              ...form,
 
-              quantity:Number(form.quantity)
 
-            })
 
-          }
-        );
 
 
 
-      if(!response.ok){
+async function handleSubmit(
+e:React.FormEvent
+){
 
-        throw new Error(
-          "Failed creating collaboration"
-        );
 
-      }
+e.preventDefault();
 
 
+setLoading(true);
 
-      navigate("/admin");
+setError("");
 
 
 
-    }catch(error){
+try{
 
 
-      console.log(error);
+const formData =
+new FormData();
 
 
-      alert(
-        "Could not create collaboration"
-      );
 
+Object.entries(form)
+.forEach(([key,value])=>{
 
-    }
 
+formData.append(
+key,
+value
+);
 
 
-  };
+});
 
 
 
 
 
+if(image){
 
-  return (
 
-    <div className="
-      min-h-screen
-      bg-agane-bg
-      text-agane-text
-      px-6
-      py-20
-    ">
+formData.append(
+"image",
+image
+);
 
 
-      <div className="
-        max-w-3xl
-        mx-auto
-      ">
+}
 
 
-        <h1 className="
-          text-5xl
-          font-serif
-          mb-12
-        ">
 
-          New Collaboration
 
-        </h1>
 
+const response =
+await fetch(
 
+"http://localhost:8080/api/collaborations",
 
+{
 
+method:"POST",
 
-        <form
+body:formData
 
-          onSubmit={handleSubmit}
+}
 
-          className="
-            space-y-8
-          "
+);
 
-        >
 
 
 
 
-          <input
+if(!response.ok){
 
-            name="maker"
+throw new Error(
+"Failed creating collaboration"
+);
 
-            placeholder="Maker"
+}
 
-            value={form.maker}
 
-            onChange={handleChange}
 
-            className="
-              w-full
-              border
-              p-4
-            "
 
-          />
+navigate("/admin");
 
 
 
 
 
-          <input
+}catch(err){
 
-            name="title"
 
-            placeholder="Collection title"
+console.log(err);
 
-            value={form.title}
 
-            onChange={handleChange}
+setError(
+"Something went wrong"
+);
 
-            className="
-              w-full
-              border
-              p-4
-            "
 
-          />
 
+}finally{
 
 
+setLoading(false);
 
 
+}
 
-          <textarea
 
-            name="description"
 
-            placeholder="Description"
+}
 
-            value={form.description}
 
-            onChange={handleChange}
 
-            className="
-              w-full
-              border
-              p-4
-              h-40
-            "
 
-          />
 
 
 
 
 
+return (
 
 
-          <input
+<div className="
+min-h-screen
+bg-agane-bg
+text-agane-text
+px-6
+py-16
+">
 
-            name="quantity"
 
-            type="number"
 
-            placeholder="Number of knives"
+<div className="
+max-w-4xl
+mx-auto
+">
 
-            value={form.quantity}
 
-            onChange={handleChange}
 
-            className="
-              w-full
-              border
-              p-4
-            "
+<h1 className="
+text-5xl
+font-serif
+mb-12
+">
 
-          />
+New Collaboration
 
+</h1>
 
 
 
 
 
 
-          <input
 
-            name="releaseDate"
+<form
 
-            type="date"
+onSubmit={handleSubmit}
 
-            value={form.releaseDate}
+className="
+space-y-8
+"
 
-            onChange={handleChange}
+>
 
-            className="
-              w-full
-              border
-              p-4
-            "
 
-          />
 
 
 
 
+<div className="
+grid
+md:grid-cols-2
+gap-6
+">
 
 
 
-          <input
 
-            name="image"
 
-            placeholder="Image URL"
+{[
 
-            value={form.image}
+["maker","Maker"],
+["title","Collaboration Title"],
+["quantity","Number of Blades"],
+["releaseDate","Release Date"]
 
-            onChange={handleChange}
+].map(([name,label])=>(
 
-            className="
-              w-full
-              border
-              p-4
-            "
 
-          />
+<input
 
+key={name}
 
+name={name}
 
+placeholder={label}
 
+type={
+name==="releaseDate"
+?
+"date"
+:
+"text"
+}
 
+value={
+form[name as keyof typeof form]
+}
 
+onChange={handleChange}
 
-          <button
+className="
+border
+border-agane-text
+p-4
+bg-transparent
+"
 
-            className="
-              border
-              px-10
-              py-4
-              hover:bg-black
-              hover:text-white
-              transition
-            "
+/>
 
-          >
 
-            Create Collaboration
+))}
 
-          </button>
 
 
+</div>
 
 
 
-        </form>
 
 
 
-      </div>
 
 
-    </div>
 
+<textarea
 
-  );
+name="description"
+
+placeholder="
+Collaboration description...
+"
+
+value={form.description}
+
+onChange={handleChange}
+
+className="
+border
+border-agane-text
+p-4
+w-full
+h-40
+bg-transparent
+"
+
+/>
+
+
+
+
+
+
+
+
+
+
+<div>
+
+
+<label className="
+block
+mb-3
+">
+
+Status
+
+</label>
+
+
+
+<select
+
+name="status"
+
+value={form.status}
+
+onChange={handleChange}
+
+className="
+border
+border-agane-text
+p-4
+w-full
+bg-transparent
+"
+
+>
+
+
+<option value="upcoming">
+
+Upcoming
+
+</option>
+
+
+<option value="active">
+
+Active
+
+</option>
+
+
+<option value="completed">
+
+Completed
+
+</option>
+
+
+
+</select>
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<div className="
+border
+border-agane-text
+p-6
+">
+
+
+<label>
+
+Upload Collaboration Image
+
+
+<input
+
+type="file"
+
+accept="image/*"
+
+onChange={(e)=>
+setImage(
+e.target.files?.[0] || null
+)
+}
+
+className="
+block
+mt-4
+"
+
+/>
+
+
+</label>
+
+
+</div>
+
+
+
+
+
+
+
+
+
+{error && (
+
+<p className="
+text-red-600
+">
+
+{error}
+
+</p>
+
+)}
+
+
+
+
+
+
+
+<button
+
+disabled={loading}
+
+className="
+bg-black
+text-white
+px-12
+py-4
+border
+border-black
+hover:bg-transparent
+hover:text-black
+transition
+"
+
+>
+
+
+{
+loading
+?
+"Saving..."
+:
+"Create Collaboration"
+}
+
+
+</button>
+
+
+
+
+
+
+</form>
+
+
+
+
+
+
+</div>
+
+
+</div>
+
+
+);
+
 
 }

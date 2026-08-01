@@ -1,15 +1,23 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+
 
 
 type Knife = {
 
-id:string;
-title:string;
-maker:string;
-images:string[];
-price:number;
-status:string;
+  id:string;
+
+  slug:string;
+
+  title:string;
+
+  maker:string;
+
+  price:number;
+
+  status:string;
+
+  images:string[];
 
 };
 
@@ -17,12 +25,21 @@ status:string;
 
 type Collaboration = {
 
-id:string;
-title:string;
-maker:string;
-description?:string;
-quantity:number;
-status:string;
+  id:string;
+
+  maker:string;
+
+  title:string;
+
+  description?:string;
+
+  quantity:number;
+
+  status:string;
+
+  releaseDate?:string;
+
+  image?:string;
 
 };
 
@@ -33,15 +50,15 @@ status:string;
 export default function Home(){
 
 
-const navigate = useNavigate();
-
 
 const [knives,setKnives] =
-useState<Knife[]>([]);
+  useState<Knife[]>([]);
 
 
-const [collabs,setCollabs] =
-useState<Collaboration[]>([]);
+
+const [collaborations,setCollaborations] =
+  useState<Collaboration[]>([]);
+
 
 
 
@@ -51,32 +68,93 @@ useState<Collaboration[]>([]);
 useEffect(()=>{
 
 
-fetch(
-"http://localhost:8080/api/knives"
-)
 
-.then(res=>res.json())
-
-.then(data=>{
-
-setKnives(data);
-
-});
+  // LOAD KNIVES
 
 
+  fetch(
+    "http://localhost:8080/api/knives"
+  )
 
 
-fetch(
-"http://localhost:8080/api/collaborations"
-)
+  .then(res=>res.json())
 
-.then(res=>res.json())
 
-.then(data=>{
+  .then(data=>{
 
-setCollabs(data);
 
-});
+    if(Array.isArray(data)){
+
+
+      setKnives(
+        data.slice(0,6)
+      );
+
+
+    }
+
+
+  })
+
+
+  .catch(err=>{
+
+
+    console.log(
+      "HOME KNIFE ERROR",
+      err
+    );
+
+
+  });
+
+
+
+
+
+
+
+
+  // LOAD COLLABORATIONS
+
+
+  fetch(
+    "http://localhost:8080/api/collaborations"
+  )
+
+
+  .then(res=>res.json())
+
+
+  .then(data=>{
+
+
+    if(Array.isArray(data)){
+
+
+      setCollaborations(
+        data.slice(0,3)
+      );
+
+
+    }
+
+
+  })
+
+
+  .catch(err=>{
+
+
+    console.log(
+      "COLLAB HOME ERROR",
+      err
+    );
+
+
+  });
+
+
 
 
 
@@ -86,9 +164,6 @@ setCollabs(data);
 
 
 
-const featured =
-knives.slice(0,3);
-
 
 
 
@@ -96,11 +171,12 @@ knives.slice(0,3);
 
 return (
 
-<div className="
-bg-agane-bg
-text-agane-text
-">
 
+<main className="
+ min-h-screen
+ bg-agane-bg
+ text-agane-text
+">
 
 
 
@@ -110,31 +186,41 @@ text-agane-text
 {/* HERO */}
 
 
+
 <section className="
-min-h-screen
-flex
-items-center
-px-6
+ min-h-screen
+ flex
+ items-center
+ px-6
 ">
-
-
 
 
 <div className="
-max-w-5xl
-mx-auto
+ max-w-7xl
+ mx-auto
+ grid
+ lg:grid-cols-2
+ gap-16
+ items-center
+ w-full
 ">
+
+
+
+<div>
 
 
 <p className="
-uppercase
-tracking-[0.4em]
-text-sm
-opacity-60
-mb-8
+ uppercase
+ tracking-[0.4em]
+ text-sm
+ opacity-60
+ mb-8
 ">
 
-Ågane Workshop
+Handcrafted Knives
+&
+Exclusive Collaborations
 
 </p>
 
@@ -143,31 +229,33 @@ mb-8
 
 
 <h1 className="
-text-7xl
-font-serif
-leading-tight
+ text-7xl
+ font-serif
+ leading-tight
 ">
 
-Exceptional knives.
+Rare knives.
 <br/>
 
-Created with master craftsmen.
+Exceptional makers.
 
 </h1>
 
 
 
 
+
 <p className="
-mt-8
-max-w-xl
-text-lg
-opacity-70
+ mt-8
+ max-w-xl
+ text-lg
+ opacity-80
+ leading-relaxed
 ">
 
-A curated collection of handcrafted blades,
-created through collaborations with exceptional
-blacksmiths around the world.
+Ågane brings together exceptional
+bladesmiths and collectors through
+limited handmade knife collaborations.
 
 </p>
 
@@ -175,26 +263,87 @@ blacksmiths around the world.
 
 
 
+<div className="
+ mt-12
+ flex
+ gap-6
+">
 
-<button
 
-onClick={()=>navigate("/collection")}
+<Link
+
+to="/collection"
 
 className="
-mt-10
-border
-px-10
-py-4
-hover:bg-black
-hover:text-white
-transition
+ border
+ border-agane-text
+ px-10
+ py-4
+ hover:bg-agane-text
+ hover:text-white
+ transition
 "
 
 >
 
 Explore Collection
 
-</button>
+</Link>
+
+
+
+
+<Link
+
+to="/collaborations"
+
+className="
+ px-10
+ py-4
+ hover:opacity-60
+"
+
+>
+
+Upcoming Collabs →
+
+</Link>
+
+
+</div>
+
+
+
+</div>
+
+
+
+
+
+
+
+<div className="
+ h-[700px]
+ overflow-hidden
+">
+
+
+<img
+
+src="/hero-knife.jpeg"
+
+alt="Ågane knife"
+
+className="
+w-full
+h-full
+object-cover
+"
+
+/>
+
+
+</div>
 
 
 
@@ -212,13 +361,68 @@ Explore Collection
 
 
 
-{/* FEATURED */}
+{/* INTRO */}
 
 
 
 <section className="
 px-6
-py-24
+py-32
+">
+
+
+<div className="
+max-w-5xl
+mx-auto
+text-center
+">
+
+
+<h2 className="
+text-5xl
+font-serif
+">
+
+Crafted with purpose.
+Collected for a lifetime.
+
+</h2>
+
+
+
+<p className="
+mt-8
+opacity-70
+text-lg
+">
+
+Every Ågane knife represents
+craftsmanship, collaboration
+and the pursuit of perfection.
+
+</p>
+
+
+</div>
+
+
+</section>
+
+
+
+
+
+
+
+
+
+{/* COLLECTION */}
+
+
+
+<section className="
+px-6
+py-32
 ">
 
 
@@ -228,15 +432,17 @@ mx-auto
 ">
 
 
+
 <h2 className="
 text-5xl
 font-serif
-mb-12
+mb-16
 ">
 
-Featured Collection
+Explore Collection
 
 </h2>
+
 
 
 
@@ -249,10 +455,11 @@ gap-10
 ">
 
 
-{featured.map(knife=>(
+
+{knives.map((knife)=>(
 
 
-<div
+<article
 
 key={knife.id}
 
@@ -260,9 +467,15 @@ className="
 bg-white
 border
 overflow-hidden
+group
 "
 
+
 >
+
+
+
+{knife.images?.[0] && (
 
 
 <img
@@ -272,33 +485,31 @@ src={
 }
 
 className="
-h-96
 w-full
+h-96
 object-cover
+group-hover:scale-105
+transition
 "
 
 />
 
 
+)}
+
+
+
 
 <div className="
-p-6
+p-7
 ">
-
-
-<h3 className="
-text-2xl
-font-serif
-">
-
-{knife.title}
-
-</h3>
 
 
 <p className="
-mt-2
-opacity-70
+text-xs
+uppercase
+tracking-[0.3em]
+opacity-60
 ">
 
 {knife.maker}
@@ -306,22 +517,73 @@ opacity-70
 </p>
 
 
+
+<h3 className="
+text-3xl
+font-serif
+mt-3
+">
+
+{knife.title}
+
+</h3>
+
+
+
+
+
+<div className="
+mt-6
+flex
+justify-between
+border-t
+pt-5
+">
+
+
+<span>
+
+{knife.status==="available"
+?
+`${knife.price} SEK`
+:
+"SOLD"
+}
+
+</span>
+
+
+
+<Link
+
+to={`/collection/${knife.slug}`}
+
+>
+
+View →
+
+</Link>
+
+
 </div>
 
 
 
 </div>
+
+
+</article>
 
 
 ))}
 
 
-</div>
-
-
 
 </div>
 
+
+
+</div>
 
 
 </section>
@@ -334,14 +596,15 @@ opacity-70
 
 
 
-{/* COLLABS */}
+{/* COLLABORATIONS */}
 
 
 
 <section className="
 px-6
-py-24
-bg-white
+py-32
+bg-black
+text-white
 ">
 
 
@@ -349,6 +612,7 @@ bg-white
 max-w-7xl
 mx-auto
 ">
+
 
 
 <h2 className="
@@ -364,13 +628,13 @@ Upcoming Collaborations
 
 
 <p className="
-max-w-xl
 opacity-70
-mb-12
+max-w-xl
+mb-16
 ">
 
 Limited releases created together with
-exceptional makers.
+exceptional bladesmiths.
 
 </p>
 
@@ -381,29 +645,74 @@ exceptional makers.
 
 <div className="
 grid
-md:grid-cols-2
+md:grid-cols-3
 gap-10
 ">
 
 
-{collabs.map(collab=>(
 
 
-<div
+
+{collaborations.map((collab)=>(
+
+
+<article
 
 key={collab.id}
 
 className="
 border
-p-10
+border-white/20
+p-8
 "
 
+
 >
+
+
+
+
+{collab.image && (
+
+<img
+
+src={
+`http://localhost:8080${collab.image}`
+}
+
+className="
+w-full
+h-72
+object-cover
+mb-8
+"
+
+/>
+
+)}
+
+
+
+
+
+<p className="
+uppercase
+tracking-[0.3em]
+text-xs
+opacity-60
+">
+
+Upcoming
+
+</p>
+
+
 
 
 <h3 className="
 text-3xl
 font-serif
+mt-4
 ">
 
 {collab.title}
@@ -411,13 +720,13 @@ font-serif
 </h3>
 
 
-<p className="
-mt-3
-">
+
+<p className="mt-3">
 
 {collab.maker}
 
 </p>
+
 
 
 
@@ -432,81 +741,47 @@ opacity-70
 
 
 
+
+
 <div className="
 mt-8
-border
-inline-block
-px-5
-py-2
+border-t
+border-white/20
+pt-5
+flex
+justify-between
 ">
+
+
+<span>
 
 {collab.quantity} blades
 
+</span>
+
+
+
+<span>
+
+{collab.status}
+
+</span>
+
+
 </div>
 
 
 
-</div>
+
+</article>
 
 
 ))}
 
 
-</div>
-
 
 
 </div>
-
-
-</section>
-
-
-
-
-
-
-
-
-
-{/* CRAFT */}
-
-
-
-<section className="
-px-6
-py-32
-">
-
-
-<div className="
-max-w-5xl
-mx-auto
-">
-
-
-<h2 className="
-text-5xl
-font-serif
-">
-
-The Craft
-
-</h2>
-
-
-
-<p className="
-mt-8
-text-lg
-opacity-70
-">
-
-From Japanese natural stones to final polishing,
-every blade receives individual attention.
-Ågane exists between tradition and modern craft.
-
-</p>
 
 
 
@@ -521,9 +796,8 @@ every blade receives individual attention.
 
 
 
+</main>
 
-
-</div>
 
 );
 

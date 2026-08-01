@@ -5,6 +5,123 @@ import { prisma } from "../prisma";
 
 const router = Router();
 
+// ==========================
+// UPDATE KNIFE
+// ==========================
+
+
+router.put("/:id", async(req,res)=>{
+
+
+try{
+
+
+const knife =
+
+await prisma.knife.update({
+
+
+where:{
+
+id:req.params.id
+
+},
+
+
+
+data:{
+
+
+title:
+req.body.title,
+
+
+slug:
+req.body.slug,
+
+
+maker:
+req.body.maker,
+
+
+origin:
+req.body.origin || null,
+
+
+steel:
+req.body.steel || null,
+
+
+bladeType:
+req.body.bladeType || null,
+
+
+length:
+req.body.length || null,
+
+
+handle:
+req.body.handle || null,
+
+
+weight:
+req.body.weight
+?
+Number(req.body.weight)
+:
+null,
+
+
+description:
+req.body.description || null,
+
+
+price:
+Number(req.body.price),
+
+
+
+status:
+req.body.status || "available"
+
+
+
+}
+
+
+
+});
+
+
+
+
+res.json(knife);
+
+
+
+}catch(error){
+
+
+console.error(
+"UPDATE KNIFE ERROR:",
+error
+);
+
+
+
+res.status(500).json({
+
+error:"Failed updating knife"
+
+});
+
+
+
+}
+
+
+});
+
 
 
 // ==========================

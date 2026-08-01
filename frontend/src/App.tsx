@@ -10,6 +10,8 @@ import NewCollaboration from "./pages/NewCollaboration";
 import Collection from "./pages/Collection";
 import Navbar from "./components/Navbar";
 import KnifeDetail from "./pages/KnifeDetail";
+import EditKnife from "./pages/EditKnife";
+import Collaborations from "./pages/Collaborations";
 
 
 
@@ -45,6 +47,13 @@ function App() {
   path="/collection/:slug"
   element={<KnifeDetail />}
 />
+<Route
+
+path="/collaborations"
+
+element={<Collaborations />}
+
+/>
 
 
 
@@ -52,13 +61,29 @@ function App() {
           path="/collection"
           element={<Collection />}
         />
+        
 
 
 
         <Route
           path="/knives"
           element={<AvailableKnives />}
-        />
+        /> 
+        <Route
+
+path="/admin/knife/:id/edit"
+
+element={
+
+<ProtectedRoute>
+
+<EditKnife />
+
+</ProtectedRoute>
+
+}
+
+/>
 
 
 

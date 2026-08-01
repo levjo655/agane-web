@@ -1,3 +1,7 @@
+import { Link } from "react-router-dom";
+
+
+
 interface Knife {
 
   id: string;
@@ -16,7 +20,11 @@ interface Knife {
 
   status:string;
 
+  slug:string;
+
 }
+
+
 
 
 
@@ -25,257 +33,316 @@ export default function KnifeCard(
 ) {
 
 
-  function statusBadge(status:string){
 
 
-    if(status === "sold"){
+function statusBadge(status:string){
 
-      return (
 
-        <span
-          className="
-            absolute
-            top-4
-            left-4
-            bg-black
-            text-white
-            px-4
-            py-1
-            text-xs
-            tracking-[0.25em]
-          "
-        >
 
-          SOLD
+if(status === "sold"){
 
-        </span>
 
-      );
+return (
 
-    }
+<span
+className="
+absolute
+top-4
+left-4
+bg-black
+text-white
+px-4
+py-1
+text-xs
+tracking-[0.25em]
+"
+>
 
+SOLD
 
+</span>
 
-    if(status === "archive"){
+);
 
-      return (
 
-        <span
-          className="
-            absolute
-            top-4
-            left-4
-            border
-            border-black
-            bg-white
-            px-4
-            py-1
-            text-xs
-            tracking-[0.25em]
-          "
-        >
+}
 
-          ARCHIVE
 
-        </span>
 
-      );
 
-    }
 
+if(status === "archive"){
 
 
+return (
 
-    return (
+<span
+className="
+absolute
+top-4
+left-4
+border
+border-black
+bg-white
+px-4
+py-1
+text-xs
+tracking-[0.25em]
+"
+>
 
-      <span
-        className="
-          absolute
-          top-4
-          left-4
-          border
-          bg-white
-          px-4
-          py-1
-          text-xs
-          tracking-[0.25em]
-        "
-      >
+ARCHIVE
 
-        AVAILABLE
+</span>
 
-      </span>
+);
 
-    );
 
-  }
+}
 
 
 
 
 
 
-  return (
+return (
 
-    <article
-      className="
-        group
-        bg-white
-        border
-        border-agane-border
-        overflow-hidden
-        transition
-        hover:-translate-y-1
-        duration-300
-      "
-    >
+<span
+className="
+absolute
+top-4
+left-4
+border
+bg-white
+px-4
+py-1
+text-xs
+tracking-[0.25em]
+"
+>
 
+AVAILABLE
 
+</span>
 
-      <div className="
-        overflow-hidden
-        relative
-      ">
+);
 
 
-        {statusBadge(knife.status)}
+}
 
 
 
-        <img
 
-          src={
-            knife.image ||
-            "/images/placeholder.jpg"
-          }
 
-          alt={knife.title}
 
-          className="
-            w-full
-            h-80
-            object-cover
-            transition
-            duration-500
-            group-hover:scale-105
-          "
 
-        />
 
 
-      </div>
+return (
 
 
+<article
 
+className="
+group
+bg-white
+border
+border-agane-border
+overflow-hidden
+transition
+hover:-translate-y-1
+duration-300
+"
 
+>
 
-      <div className="p-6">
 
 
 
-        <p
-          className="
-            text-xs
-            uppercase
-            tracking-[0.25em]
-            mb-3
-            opacity-60
-          "
-        >
+<div className="
+overflow-hidden
+relative
+">
 
-          {knife.maker}
 
-        </p>
 
+{statusBadge(knife.status)}
 
 
 
 
-        <h2
-          className="
-            text-2xl
-            font-serif
-            mb-3
-          "
-        >
 
-          {knife.title}
 
-        </h2>
+<img
 
+src={
+knife.image ||
+"/images/placeholder.jpg"
+}
 
+alt={knife.title}
 
+className="
+w-full
+h-80
+object-cover
+transition
+duration-500
+group-hover:scale-105
+"
 
+/>
 
-        <p
-          className="
-            text-sm
-            leading-relaxed
-            mb-4
-            opacity-80
-          "
-        >
 
-          {knife.description}
 
-        </p>
 
+</div>
 
 
 
 
-        <div
-          className="
-            flex
-            justify-between
-            items-center
-            pt-4
-            border-t
-            border-agane-border
-          "
-        >
 
 
 
-          <span>
 
-            {knife.price} SEK
 
-          </span>
+<div className="p-6">
 
 
 
 
 
-          <button
+<p
 
-            className="
-              text-sm
-              tracking-wide
-              hover:opacity-60
-            "
+className="
+text-xs
+uppercase
+tracking-[0.25em]
+mb-3
+opacity-60
+"
 
-          >
+>
 
-            View →
+{knife.maker}
 
-          </button>
+</p>
 
 
 
 
-        </div>
 
 
 
+<h2
 
-      </div>
+className="
+text-2xl
+font-serif
+mb-3
+"
 
+>
 
+{knife.title}
 
+</h2>
 
-    </article>
 
-  );
+
+
+
+
+
+<p
+
+className="
+text-sm
+leading-relaxed
+mb-4
+opacity-80
+"
+
+>
+
+{knife.description}
+
+</p>
+
+
+
+
+
+
+
+<div
+
+className="
+flex
+justify-between
+items-center
+pt-4
+border-t
+border-agane-border
+"
+
+>
+
+
+
+<span>
+
+{knife.price} SEK
+
+</span>
+
+
+
+
+
+
+
+<Link
+
+to={`/collection/${knife.slug}`}
+
+className="
+text-sm
+tracking-wide
+hover:opacity-60
+"
+
+>
+
+View →
+
+</Link>
+
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+</article>
+
+
+);
+
 
 }
