@@ -1,349 +1,531 @@
-import Header from "../components/Header"
-import Footer from "../components/Footer";
-import { collabs } from "../data/collabs";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 
+type Knife = {
 
+id:string;
+title:string;
+maker:string;
+images:string[];
+price:number;
+status:string;
 
-export default function Home() {
+};
 
-  return (
 
-    <div className="min-h-dvh flex flex-col bg-agane-bg text-agane-text">
 
-      <Header />
+type Collaboration = {
 
+id:string;
+title:string;
+maker:string;
+description?:string;
+quantity:number;
+status:string;
 
-      <main className="flex-grow">
+};
 
 
-        {/* HERO */}
 
-        <section className="min-h-[80vh] flex flex-col items-center justify-center text-center px-6">
 
-          <p className="uppercase tracking-[0.3em] text-sm mb-6">
-            Japanese natural stone sharpening
-          </p>
 
+export default function Home(){
 
-          <h1 className="text-6xl md:text-7xl font-serif mb-8">
-            Ågane
-          </h1>
 
+const navigate = useNavigate();
 
-          <p className="max-w-xl text-lg leading-relaxed mb-10">
-            Preserving the soul of exceptional Japanese knives through
-            traditional sharpening techniques and meaningful collaborations.
-          </p>
 
+const [knives,setKnives] =
+useState<Knife[]>([]);
 
-          <a
-            href="#gallery"
-            className="
-              border
-              border-agane-text
-              px-8
-              py-3
-              tracking-wide
-              hover:bg-agane-text
-              hover:text-white
-              transition
-            "
-          >
-            Explore
-          </a>
 
+const [collabs,setCollabs] =
+useState<Collaboration[]>([]);
 
-        </section>
 
 
 
-        {/* ABOUT */}
 
 
-        <section className="py-24 px-6 max-w-6xl mx-auto">
+useEffect(()=>{
 
 
-          <div className="
-            grid
-            md:grid-cols-2
-            gap-16
-            items-center
-          ">
+fetch(
+"http://localhost:8080/api/knives"
+)
 
+.then(res=>res.json())
 
-            <img
-              src="/images/agane_main_pic.jpg"
-              alt="Ågane sharpening"
-              className="
-                w-full
-                rounded-lg
-                object-cover
-              "
-            />
+.then(data=>{
 
+setKnives(data);
 
-            <div className="space-y-6 text-lg leading-relaxed">
+});
 
 
-              <h2 className="text-4xl font-serif">
-                Hello
-              </h2>
 
 
-              <p>
-                My name is Levjo Cibuku, and I’m the sharpener behind Ågane.
-              </p>
+fetch(
+"http://localhost:8080/api/collaborations"
+)
 
+.then(res=>res.json())
 
-              <p>
-                What started as an obsession with Japanese knives grew into a
-                journey of understanding steel, geometry, and the craft behind
-                every blade.
-              </p>
+.then(data=>{
 
+setCollabs(data);
 
-              <p>
-                Today Ågane combines traditional sharpening techniques with
-                collaborations alongside exceptional blacksmiths, bringing out
-                the true character of each knife.
-              </p>
+});
 
 
-            </div>
 
+},[]);
 
-          </div>
 
 
-        </section>
 
 
+const featured =
+knives.slice(0,3);
 
 
-        {/* COLLABS */}
 
 
-        <section
-          id="gallery"
-          className="py-24 px-6 bg-agane-surface"
-        >
 
 
-          <h2 className="
-            text-4xl
-            font-serif
-            text-center
-            mb-14
-          ">
-            Featured Collaborations
-          </h2>
+return (
 
+<div className="
+bg-agane-bg
+text-agane-text
+">
 
 
-          <div className="
-            grid
-            md:grid-cols-3
-            gap-8
-            max-w-6xl
-            mx-auto
-          ">
 
 
-            {collabs.slice(0,3).map((collab)=>(
 
 
-              <article
-                key={collab.id}
-                className="
-                  bg-agane-card
-                  border
-                  border-agane-border
-                  overflow-hidden
-                "
-              >
 
+{/* HERO */}
 
-                <img
-                  src={collab.images[0]}
-                  alt={collab.name}
-                  className="
-                    w-full
-                    h-64
-                    object-cover
-                  "
-                />
 
+<section className="
+min-h-screen
+flex
+items-center
+px-6
+">
 
-                <div className="p-6">
 
 
-                  <h3 className="
-                    text-2xl
-                    font-serif
-                    mb-3
-                  ">
-                    {collab.name}
-                  </h3>
 
+<div className="
+max-w-5xl
+mx-auto
+">
 
-                  <p className="text-sm leading-relaxed">
-                    {collab.description}
-                  </p>
 
+<p className="
+uppercase
+tracking-[0.4em]
+text-sm
+opacity-60
+mb-8
+">
 
-                </div>
+Ågane Workshop
 
+</p>
 
-              </article>
 
 
-            ))}
 
 
-          </div>
+<h1 className="
+text-7xl
+font-serif
+leading-tight
+">
 
+Exceptional knives.
+<br/>
 
-        </section>
+Created with master craftsmen.
 
+</h1>
 
 
 
-        {/* SERVICES */}
 
+<p className="
+mt-8
+max-w-xl
+text-lg
+opacity-70
+">
 
+A curated collection of handcrafted blades,
+created through collaborations with exceptional
+blacksmiths around the world.
 
-        <section className="
-          py-24
-          px-6
-          max-w-6xl
-          mx-auto
-        ">
+</p>
 
 
-          <h2 className="
-            text-4xl
-            font-serif
-            text-center
-            mb-14
-          ">
-            Sharpening Services
-          </h2>
 
 
 
-          <div className="
-            grid
-            md:grid-cols-3
-            gap-8
-          ">
 
+<button
 
-            {[
-              {
-                title:"Edge Sharpening",
-                image:"/images/edge_sharpening.jpeg",
-                text:"Precision sharpening on Japanese whetstones."
-              },
-              {
-                title:"Bevel Polishing",
-                image:"/images/bevel_sharpening.jpg",
-                text:"Refining blade geometry for performance and beauty."
-              },
-              {
-                title:"Full Stone Polish",
-                image:"/images/full_stone_sharpening.jpg",
-                text:"Complete restoration using natural stones."
-              }
+onClick={()=>navigate("/collection")}
 
-            ].map(service=>(
+className="
+mt-10
+border
+px-10
+py-4
+hover:bg-black
+hover:text-white
+transition
+"
 
+>
 
-              <div
-                key={service.title}
-                className="
-                  border
-                  border-agane-border
-                  bg-white
-                  overflow-hidden
-                "
-              >
+Explore Collection
 
-                <img
-                  src={service.image}
-                  className="w-full h-52 object-cover"
-                />
+</button>
 
 
-                <div className="p-6 text-center">
 
 
-                  <h3 className="text-xl font-serif mb-3">
-                    {service.title}
-                  </h3>
+</div>
 
 
-                  <p className="text-sm">
-                    {service.text}
-                  </p>
+</section>
 
 
-                </div>
 
 
-              </div>
 
 
-            ))}
 
 
-          </div>
 
+{/* FEATURED */}
 
-        </section>
 
 
+<section className="
+px-6
+py-24
+">
 
 
+<div className="
+max-w-7xl
+mx-auto
+">
 
-        {/* CONTACT */}
 
+<h2 className="
+text-5xl
+font-serif
+mb-12
+">
 
-        <section className="
-          py-24
-          text-center
-          bg-agane-surface
-        ">
+Featured Collection
 
+</h2>
 
-          <h2 className="
-            text-4xl
-            font-serif
-            mb-8
-          ">
-            Get in Touch
-          </h2>
 
 
-          <p>
-            info@agane.se
-          </p>
 
 
-          <p>
-            @agane.knives
-          </p>
+<div className="
+grid
+md:grid-cols-3
+gap-10
+">
 
 
-        </section>
+{featured.map(knife=>(
 
 
-      </main>
+<div
 
+key={knife.id}
 
-      <Footer />
+className="
+bg-white
+border
+overflow-hidden
+"
 
-    </div>
+>
 
-  );
+
+<img
+
+src={
+`http://localhost:8080${knife.images[0]}`
+}
+
+className="
+h-96
+w-full
+object-cover
+"
+
+/>
+
+
+
+<div className="
+p-6
+">
+
+
+<h3 className="
+text-2xl
+font-serif
+">
+
+{knife.title}
+
+</h3>
+
+
+<p className="
+mt-2
+opacity-70
+">
+
+{knife.maker}
+
+</p>
+
+
+</div>
+
+
+
+</div>
+
+
+))}
+
+
+</div>
+
+
+
+</div>
+
+
+
+</section>
+
+
+
+
+
+
+
+
+
+{/* COLLABS */}
+
+
+
+<section className="
+px-6
+py-24
+bg-white
+">
+
+
+<div className="
+max-w-7xl
+mx-auto
+">
+
+
+<h2 className="
+text-5xl
+font-serif
+mb-6
+">
+
+Upcoming Collaborations
+
+</h2>
+
+
+
+<p className="
+max-w-xl
+opacity-70
+mb-12
+">
+
+Limited releases created together with
+exceptional makers.
+
+</p>
+
+
+
+
+
+
+<div className="
+grid
+md:grid-cols-2
+gap-10
+">
+
+
+{collabs.map(collab=>(
+
+
+<div
+
+key={collab.id}
+
+className="
+border
+p-10
+"
+
+>
+
+
+<h3 className="
+text-3xl
+font-serif
+">
+
+{collab.title}
+
+</h3>
+
+
+<p className="
+mt-3
+">
+
+{collab.maker}
+
+</p>
+
+
+
+<p className="
+mt-6
+opacity-70
+">
+
+{collab.description}
+
+</p>
+
+
+
+<div className="
+mt-8
+border
+inline-block
+px-5
+py-2
+">
+
+{collab.quantity} blades
+
+</div>
+
+
+
+</div>
+
+
+))}
+
+
+</div>
+
+
+
+</div>
+
+
+</section>
+
+
+
+
+
+
+
+
+
+{/* CRAFT */}
+
+
+
+<section className="
+px-6
+py-32
+">
+
+
+<div className="
+max-w-5xl
+mx-auto
+">
+
+
+<h2 className="
+text-5xl
+font-serif
+">
+
+The Craft
+
+</h2>
+
+
+
+<p className="
+mt-8
+text-lg
+opacity-70
+">
+
+From Japanese natural stones to final polishing,
+every blade receives individual attention.
+Ågane exists between tradition and modern craft.
+
+</p>
+
+
+
+</div>
+
+
+</section>
+
+
+
+
+
+
+
+
+
+</div>
+
+);
+
+
 }

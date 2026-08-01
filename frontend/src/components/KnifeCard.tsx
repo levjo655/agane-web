@@ -1,15 +1,119 @@
 interface Knife {
+
   id: string;
+
   title: string;
+
   maker: string;
+
   steel?: string;
+
   description: string;
+
   price: number;
+
   image: string;
+
+  status:string;
+
 }
 
 
-export default function KnifeCard({ knife }: { knife: Knife }) {
+
+export default function KnifeCard(
+  { knife }: { knife: Knife }
+) {
+
+
+  function statusBadge(status:string){
+
+
+    if(status === "sold"){
+
+      return (
+
+        <span
+          className="
+            absolute
+            top-4
+            left-4
+            bg-black
+            text-white
+            px-4
+            py-1
+            text-xs
+            tracking-[0.25em]
+          "
+        >
+
+          SOLD
+
+        </span>
+
+      );
+
+    }
+
+
+
+    if(status === "archive"){
+
+      return (
+
+        <span
+          className="
+            absolute
+            top-4
+            left-4
+            border
+            border-black
+            bg-white
+            px-4
+            py-1
+            text-xs
+            tracking-[0.25em]
+          "
+        >
+
+          ARCHIVE
+
+        </span>
+
+      );
+
+    }
+
+
+
+
+    return (
+
+      <span
+        className="
+          absolute
+          top-4
+          left-4
+          border
+          bg-white
+          px-4
+          py-1
+          text-xs
+          tracking-[0.25em]
+        "
+      >
+
+        AVAILABLE
+
+      </span>
+
+    );
+
+  }
+
+
+
+
+
 
   return (
 
@@ -26,14 +130,27 @@ export default function KnifeCard({ knife }: { knife: Knife }) {
       "
     >
 
-      <div className="overflow-hidden">
+
+
+      <div className="
+        overflow-hidden
+        relative
+      ">
+
+
+        {statusBadge(knife.status)}
+
+
 
         <img
+
           src={
             knife.image ||
             "/images/placeholder.jpg"
           }
+
           alt={knife.title}
+
           className="
             w-full
             h-80
@@ -42,12 +159,18 @@ export default function KnifeCard({ knife }: { knife: Knife }) {
             duration-500
             group-hover:scale-105
           "
+
         />
+
 
       </div>
 
 
+
+
+
       <div className="p-6">
+
 
 
         <p
@@ -59,8 +182,13 @@ export default function KnifeCard({ knife }: { knife: Knife }) {
             opacity-60
           "
         >
+
           {knife.maker}
+
         </p>
+
+
+
 
 
         <h2
@@ -70,8 +198,13 @@ export default function KnifeCard({ knife }: { knife: Knife }) {
             mb-3
           "
         >
+
           {knife.title}
+
         </h2>
+
+
+
 
 
         <p
@@ -82,8 +215,13 @@ export default function KnifeCard({ knife }: { knife: Knife }) {
             opacity-80
           "
         >
+
           {knife.description}
+
         </p>
+
+
+
 
 
         <div
@@ -97,28 +235,47 @@ export default function KnifeCard({ knife }: { knife: Knife }) {
           "
         >
 
+
+
           <span>
+
             {knife.price} SEK
+
           </span>
 
 
+
+
+
           <button
+
             className="
               text-sm
               tracking-wide
               hover:opacity-60
             "
+
           >
+
             View →
+
           </button>
 
+
+
+
         </div>
+
+
 
 
       </div>
 
 
+
+
     </article>
 
   );
+
 }

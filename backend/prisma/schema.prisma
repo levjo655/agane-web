@@ -2,13 +2,10 @@ generator client {
   provider = "prisma-client-js"
 }
 
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
-
 
 model Knife {
 
@@ -38,6 +35,27 @@ model Knife {
 
   images Json
 
+  status String @default("available")
+
   createdAt DateTime @default(now())
 
+}
+model Collaboration {
+  id String @id @default(uuid())
+
+  maker String
+
+  title String
+
+  description String?
+
+  quantity Int
+
+  status String @default("upcoming")
+
+  releaseDate DateTime?
+
+  image String?
+
+  createdAt DateTime @default(now())
 }

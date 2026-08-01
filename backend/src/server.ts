@@ -2,6 +2,8 @@ import express from "express";
 import cors from "cors";
 
 import knivesRouter from "./routes/knives";
+import collaborationRoutes from "./routes/collaborations";
+import path from "path";
 
 
 const app = express();
@@ -15,6 +17,16 @@ app.use(express.json());
 app.use(
   "/uploads",
   express.static("uploads")
+);
+app.use(
+ "/api/collaborations",
+ collaborationRoutes
+);
+app.use(
+  "/uploads",
+  express.static(
+    path.join(__dirname,"../uploads")
+  )
 );
 
 
