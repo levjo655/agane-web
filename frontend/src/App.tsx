@@ -17,6 +17,7 @@ import Collaborations from "./pages/Collaborations";
 
 
 
+
 console.log("ADMIN COMPONENT:", Admin);
 
 
@@ -61,6 +62,14 @@ element={<Collaborations />}
           path="/collection"
           element={<Collection />}
         />
+        <Route
+  path="/admin/knife/:id/edit"
+  element={
+    <ProtectedRoute>
+      <EditKnife />
+    </ProtectedRoute>
+  }
+/>
         
 
 

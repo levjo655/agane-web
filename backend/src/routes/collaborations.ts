@@ -15,31 +15,22 @@ const router = Router();
 
 const storage = multer.diskStorage({
 
+  destination: (_req,_file,cb)=>{
 
-  destination: (_req, _file, cb)=>{
-
-
-    cb(
-      null,
-      "uploads/"
-    );
-
+    cb(null,"uploads/");
 
   },
-
 
 
   filename: (_req,file,cb)=>{
 
 
     const uniqueName =
-
       Date.now()
       +
       "-"
       +
-      file.originalname
-      .replace(/\s+/g,"-");
+      file.originalname.replace(/\s+/g,"-");
 
 
 
@@ -66,6 +57,8 @@ const upload = multer({
 
 
 
+
+
 // ==========================
 // GET ALL COLLABORATIONS
 // ==========================
@@ -78,21 +71,15 @@ try{
 
 
 const collaborations =
-
 await prisma.collaboration.findMany({
-
 
 orderBy:{
 
-
 createdAt:"desc"
-
 
 }
 
-
 });
-
 
 
 
@@ -119,6 +106,80 @@ error:"Failed fetching collaborations"
 
 }
 
+
+});
+
+
+
+
+
+
+
+
+
+// ==========================
+// GET SINGLE COLLABORATION
+// ==========================
+
+
+router.get("/:id", async(req,res)=>{
+
+
+try{
+
+
+const collaboration =
+await prisma.collaboration.findUnique({
+
+where:{
+
+id:req.params.id
+
+}
+
+});
+
+
+
+
+if(!collaboration){
+
+
+return res.status(404).json({
+
+error:"Collaboration not found"
+
+});
+
+
+}
+
+
+
+
+
+res.json(collaboration);
+
+
+
+}catch(error){
+
+
+console.error(
+"GET COLLAB ERROR:",
+error
+);
+
+
+
+res.status(500).json({
+
+error:"Failed loading collaboration"
+
+});
+
+
+}
 
 
 });
@@ -149,98 +210,62 @@ async(req,res)=>{
 try{
 
 
-
-
-
 const imagePath =
-
 req.file
-
 ?
-
 `/uploads/${req.file.filename}`
-
 :
-
 null;
 
 
 
 
 
-
-
-
 const collaboration =
-
 await prisma.collaboration.create({
 
 data:{
 
 
-
-maker:
-
-req.body.maker,
-
-
-
-
 title:
-
 req.body.title,
 
 
+maker:
+req.body.maker,
 
 
 description:
-
 req.body.description || null,
 
 
-
-
 quantity:
-
 Number(req.body.quantity),
 
 
 
-
 status:
-
 req.body.status || "upcoming",
 
 
 
-
 releaseDate:
-
 req.body.releaseDate
-
 ?
-
 new Date(req.body.releaseDate)
-
 :
-
 null,
 
 
 
-
 image:
-
 imagePath
 
 
 
 }
 
-
 });
-
-
 
 
 
@@ -250,16 +275,12 @@ res.json(collaboration);
 
 
 
-
-
-
 }catch(error){
 
 
 console.error(
 
 "CREATE COLLAB ERROR:",
-
 error
 
 );
@@ -279,8 +300,105 @@ error:"Failed creating collaboration"
 
 }
 
+);
+
+
+
+
+
+
+
+
+
+// ==========================
+// UPDATE COLLABORATION
+// ==========================
+
+
+router.put("/:id", async(req,res)=>{
+
+
+try{
+
+
+const collaboration =
+await prisma.collaboration.update({
+
+where:{
+
+id:req.params.id
+
+},
+
+
+data:{
+
+
+title:
+req.body.title,
+
+
+maker:
+req.body.maker,
+
+
+description:
+req.body.description || null,
+
+
+quantity:
+Number(req.body.quantity),
+
+
+status:
+req.body.status || "upcoming",
+
+
+
+releaseDate:
+req.body.releaseDate
+?
+new Date(req.body.releaseDate)
+:
+null
+
+
+
+}
+
+});
+
+
+
+
+
+res.json(collaboration);
+
+
+
+}catch(error){
+
+
+console.error(
+
+"UPDATE COLLAB ERROR:",
+error
 
 );
+
+
+
+res.status(500).json({
+
+error:"Failed updating collaboration"
+
+});
+
+
+}
+
+
+});
 
 
 
@@ -325,8 +443,12 @@ message:"Collaboration deleted"
 }catch(error){
 
 
+console.error(
 
-console.error(error);
+"DELETE COLLAB ERROR:",
+error
+
+);
 
 
 
@@ -337,12 +459,12 @@ error:"Failed deleting collaboration"
 });
 
 
-
 }
 
 
-
 });
+
+
 
 
 

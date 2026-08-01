@@ -1,31 +1,38 @@
-import { useEffect,useState } from "react";
-import { useNavigate,useParams } from "react-router-dom";
-
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
 
 export default function EditKnife(){
 
 
-const {
-id
-}=useParams();
+const { id } = useParams();
+
+const navigate = useNavigate();
 
 
 
-const navigate =
-useNavigate();
+const [loading,setLoading] =
+useState(true);
+
+
+const [saving,setSaving] =
+useState(false);
 
 
 
+const [error,setError] =
+useState("");
 
 
-const [form,setForm]=useState({
+
+const [form,setForm] = useState({
 
 title:"",
 slug:"",
 maker:"",
 origin:"",
 steel:"",
+bladeType:"",
 length:"",
 handle:"",
 weight:"",
@@ -38,78 +45,92 @@ status:"available"
 
 
 
-const [loading,setLoading]=
-useState(true);
-
-
-
-
-
-
 
 useEffect(()=>{
 
 
-fetch(
-`http://localhost:8080/api/knives`
-)
+async function loadKnife(){
 
 
-.then(res=>res.json())
+try{
 
 
-.then(data=>{
+const response =
+await fetch(
 
+`http://localhost:8080/api/knives/${id}`
 
-const knife =
-data.find(
-(k:any)=>k.id===id
 );
 
 
 
-if(knife){
+const knife =
+await response.json();
+
+
 
 
 setForm({
 
-title:knife.title,
+title:knife.title || "",
 
-slug:knife.slug,
+slug:knife.slug || "",
 
-maker:knife.maker,
+maker:knife.maker || "",
 
 origin:knife.origin || "",
 
 steel:knife.steel || "",
 
+bladeType:knife.bladeType || "",
+
 length:knife.length || "",
 
 handle:knife.handle || "",
 
-weight:knife.weight || "",
+weight:
+knife.weight || "",
 
-description:knife.description || "",
+description:
+knife.description || "",
 
-price:knife.price,
+price:
+knife.price || "",
 
-status:knife.status
+status:
+knife.status || "available"
+
 
 });
+
+
+
+}catch(error){
+
+
+console.log(error);
+
+setError(
+"Failed loading knife"
+);
+
+
+
+}finally{
+
+
+setLoading(false);
+
+
+}
 
 
 }
 
 
 
-})
+loadKnife();
 
-
-.finally(()=>{
-
-setLoading(false);
-
-});
 
 
 },[id]);
@@ -123,7 +144,8 @@ setLoading(false);
 
 
 function handleChange(
-e:React.ChangeEvent<
+e:
+React.ChangeEvent<
 HTMLInputElement |
 HTMLTextAreaElement |
 HTMLSelectElement
@@ -138,12 +160,11 @@ setForm({
 [e.target.name]:
 e.target.value
 
+
 });
 
 
 }
-
-
 
 
 
@@ -160,8 +181,13 @@ e:React.FormEvent
 e.preventDefault();
 
 
+setSaving(true);
 
 
+try{
+
+
+const response =
 await fetch(
 
 `http://localhost:8080/api/knives/${id}`,
@@ -186,8 +212,39 @@ JSON.stringify(form)
 
 
 
+
+
+if(!response.ok){
+
+throw new Error();
+
+}
+
+
+
 navigate("/admin");
 
+
+
+
+}catch(error){
+
+
+console.log(error);
+
+setError(
+"Failed updating knife"
+);
+
+
+
+}finally{
+
+
+setSaving(false);
+
+
+}
 
 
 }
@@ -200,9 +257,20 @@ navigate("/admin");
 
 
 
+
 if(loading){
 
-return <p>Loading...</p>;
+return (
+
+<div className="
+p-20
+">
+
+Loading knife...
+
+</div>
+
+)
 
 }
 
@@ -216,9 +284,10 @@ return <p>Loading...</p>;
 
 return (
 
-<div className="
+<main className="
 min-h-screen
 bg-agane-bg
+text-agane-text
 px-6
 py-16
 ">
@@ -245,13 +314,12 @@ Edit Knife
 
 
 
-
 <form
 
 onSubmit={handleSubmit}
 
 className="
-space-y-6
+space-y-8
 "
 
 >
@@ -260,46 +328,63 @@ space-y-6
 
 
 
-{[
 
-"title",
-"slug",
-"maker",
-"origin",
-"steel",
-"length",
-"handle",
-"weight",
-"price"
+<div className="
+grid
+md:grid-cols-2
+gap-6
+">
 
-].map(field=>(
+
+{
+[
+["title","Knife Name"],
+["slug","Slug"],
+["maker","Maker"],
+["origin","Origin"],
+["steel","Steel"],
+["bladeType","Blade Type"],
+["length","Blade Length"],
+["handle","Handle"],
+["weight","Weight"],
+["price","Price SEK"]
+
+].map(([name,label])=>(
 
 
 <input
 
-key={field}
+key={name}
 
-name={field}
+name={name}
+
+placeholder={label}
 
 value={
-(form as any)[field]
+form[name as keyof typeof form]
 }
 
 onChange={handleChange}
 
-placeholder={field}
-
 className="
 border
 p-4
-w-full
 bg-transparent
 "
 
 />
 
 
-))}
+))
+
+}
+
+
+
+</div>
+
+
+
 
 
 
@@ -316,35 +401,31 @@ onChange={handleChange}
 className="
 border
 p-4
-w-full
 bg-transparent
+w-full
 "
 
 >
 
 
 <option value="available">
-
 Available
-
 </option>
 
 
 <option value="sold">
-
 Sold
-
 </option>
 
 
 <option value="archive">
-
 Archive
-
 </option>
 
 
+
 </select>
+
 
 
 
@@ -361,12 +442,14 @@ value={form.description}
 
 onChange={handleChange}
 
+placeholder="Description"
+
 className="
 border
 p-4
-w-full
-h-40
 bg-transparent
+w-full
+h-48
 "
 
 />
@@ -377,20 +460,53 @@ bg-transparent
 
 
 
+{error && (
+
+<p className="
+text-red-600
+">
+
+{error}
+
+</p>
+
+)}
+
+
+
+
+
+
+
+
 <button
 
+disabled={saving}
+
 className="
-bg-black
-text-white
+border
 px-12
 py-4
+hover:bg-black
+hover:text-white
+transition
 "
 
 >
 
-Save Changes
+{
+
+saving
+?
+"Saving..."
+:
+"Update Knife"
+
+}
 
 </button>
+
+
 
 
 
@@ -400,11 +516,11 @@ Save Changes
 
 
 
-</div>
-
 
 </div>
 
+
+</main>
 
 );
 

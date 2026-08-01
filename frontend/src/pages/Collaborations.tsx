@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 
+
 type Collaboration = {
 
   id:string;
@@ -28,8 +29,19 @@ type Collaboration = {
 export default function Collaborations(){
 
 
+
 const [collaborations,setCollaborations] =
 useState<Collaboration[]>([]);
+
+
+
+const [loading,setLoading] =
+useState(true);
+
+
+
+
+
 
 
 
@@ -49,7 +61,9 @@ fetch(
 
 if(Array.isArray(data)){
 
+
 setCollaborations(data);
+
 
 }
 
@@ -57,18 +71,31 @@ setCollaborations(data);
 })
 
 
-.catch(err=>{
+.catch(error=>{
+
 
 console.log(
 "COLLAB PAGE ERROR",
-err
+error
 );
+
+
+})
+
+
+.finally(()=>{
+
+
+setLoading(false);
 
 
 });
 
 
+
 },[]);
+
+
 
 
 
@@ -87,6 +114,7 @@ py-20
 ">
 
 
+
 <div className="
 max-w-7xl
 mx-auto
@@ -94,15 +122,80 @@ mx-auto
 
 
 
+
+
+
+
+<header className="
+mb-20
+">
+
+
+<p className="
+uppercase
+tracking-[0.4em]
+text-sm
+opacity-60
+">
+
+Ågane Collaborations
+
+</p>
+
+
+
+
 <h1 className="
 text-6xl
 font-serif
-mb-16
+mt-6
 ">
 
-Upcoming Collaborations
+Exceptional makers.
+Limited creations.
 
 </h1>
+
+
+
+
+
+<p className="
+mt-8
+max-w-xl
+opacity-70
+text-lg
+">
+
+Exclusive collaborations with
+bladesmiths creating unique
+handcrafted pieces.
+
+</p>
+
+
+
+</header>
+
+
+
+
+
+
+
+
+
+{loading && (
+
+<p>
+
+Loading collaborations...
+
+</p>
+
+)}
+
+
 
 
 
@@ -112,13 +205,16 @@ Upcoming Collaborations
 
 <div className="
 grid
-md:grid-cols-3
-gap-10
+md:grid-cols-2
+gap-12
 ">
 
 
 
+
+
 {collaborations.map(collab=>(
+
 
 
 <article
@@ -128,10 +224,13 @@ key={collab.id}
 className="
 bg-white
 border
+border-agane-border
 overflow-hidden
+group
 "
 
 >
+
 
 
 
@@ -144,10 +243,15 @@ src={
 `http://localhost:8080${collab.image}`
 }
 
+alt={collab.title}
+
 className="
 w-full
-h-80
+h-[450px]
 object-cover
+group-hover:scale-105
+transition
+duration-500
 "
 
 />
@@ -159,14 +263,16 @@ object-cover
 
 
 <div className="
-p-8
+p-10
 ">
+
+
 
 
 
 <p className="
 uppercase
-tracking-[0.25em]
+tracking-[0.3em]
 text-xs
 opacity-60
 ">
@@ -179,8 +285,9 @@ opacity-60
 
 
 
+
 <h2 className="
-text-3xl
+text-4xl
 font-serif
 mt-4
 ">
@@ -194,9 +301,11 @@ mt-4
 
 
 
+
 <p className="
-mt-5
-opacity-70
+mt-6
+leading-relaxed
+opacity-80
 ">
 
 {collab.description}
@@ -208,13 +317,40 @@ opacity-70
 
 
 
+
+
 <div className="
-mt-6
+mt-10
 border-t
-pt-4
+pt-6
+flex
+justify-between
 ">
 
-{collab.quantity} blades
+
+
+
+
+<div>
+
+
+<p className="
+text-xs
+uppercase
+opacity-50
+">
+
+Edition
+
+</p>
+
+
+<p>
+
+{collab.quantity} pieces
+
+</p>
+
 
 </div>
 
@@ -223,29 +359,52 @@ pt-4
 
 
 
-<span className="
-inline-block
-mt-5
-border
-px-4
-py-2
+
+<div>
+
+
+<p className="
+text-xs
+uppercase
+opacity-50
 ">
+
+Status
+
+</p>
+
+
+<p>
 
 {collab.status}
 
-</span>
+</p>
+
+
+</div>
+
+
+
+
+</div>
+
+
+
 
 
 
 
 
 </div>
+
+
 
 
 
 
 
 </article>
+
 
 
 ))}
@@ -258,10 +417,14 @@ py-2
 
 
 
+
+
+
 </div>
 
 
 </main>
+
 
 );
 
