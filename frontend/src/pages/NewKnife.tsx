@@ -1,201 +1,303 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import {
+  useEffect,
+  useState
+} from "react";
 
+import {
+  useNavigate
+} from "react-router-dom";
 
-export default function NewKnife() {
 
 
-  const navigate = useNavigate();
+type Maker = {
 
+  id:string;
 
-  const [loading,setLoading] =
-    useState(false);
+  name:string;
 
+};
 
-  const [error,setError] =
-    useState("");
 
 
 
 
-  const [form,setForm] = useState({
+export default function NewKnife(){
 
-    title:"",
-    slug:"",
-    maker:"",
-    origin:"",
-    steel:"",
-    length:"",
-    handle:"",
-    weight:"",
-    description:"",
-    price:"",
-    status:"available"
 
-  });
+const navigate = useNavigate();
 
 
 
 
+const [loading,setLoading] =
+useState(false);
 
-  const [images,setImages] =
-    useState<FileList | null>(null);
 
+const [error,setError] =
+useState("");
 
 
 
+const [makers,setMakers] =
+useState<Maker[]>([]);
 
 
-  function handleChange(
-    e: React.ChangeEvent<
-      HTMLInputElement |
-      HTMLTextAreaElement |
-      HTMLSelectElement
-    >
-  ){
 
 
-    setForm({
+const [form,setForm] =
+useState({
 
-      ...form,
+title:"",
+slug:"",
+makerId:"",
+origin:"",
+steel:"",
+bladeType:"",
+length:"",
+handle:"",
+weight:"",
+description:"",
+price:"",
+status:"available"
 
-      [e.target.name]: e.target.value
+});
 
-    });
 
 
-  }
 
 
+const [images,setImages] =
+useState<FileList | null>(null);
 
 
 
 
 
-  async function handleSubmit(
-    e: React.FormEvent
-  ){
 
 
-    e.preventDefault();
 
+// ==========================
+// LOAD MAKERS
+// ==========================
 
-    setLoading(true);
 
-    setError("");
+useEffect(()=>{
 
 
+async function loadMakers(){
 
-    try {
 
+try{
 
-      const formData =
-        new FormData();
 
+const response =
+await fetch(
+"http://localhost:8080/api/makers"
+);
 
 
 
-      Object.entries(form)
-      .forEach(([key,value])=>{
+const data =
+await response.json();
 
 
-        formData.append(
-          key,
-          value
-        );
 
+if(Array.isArray(data)){
 
-      });
+setMakers(data);
 
+}
 
 
 
+}catch(error){
 
 
-      if(images){
+console.log(
+"LOAD MAKERS ERROR",
+error
+);
 
 
-        Array.from(images)
-        .forEach(image=>{
+}
 
 
-          formData.append(
-            "images",
-            image
-          );
+}
 
 
-        });
 
+loadMakers();
 
-      }
 
 
+},[]);
 
 
 
 
-      const response =
-        await fetch(
 
-          "http://localhost:8080/api/knives",
 
-          {
 
-            method:"POST",
 
-            body:formData
 
-          }
+function handleChange(
+e:
+React.ChangeEvent<
+HTMLInputElement |
+HTMLTextAreaElement |
+HTMLSelectElement
+>
+){
 
-        );
 
+setForm({
 
+...form,
 
+[e.target.name]:
+e.target.value
 
+});
 
-      if(!response.ok){
 
-        throw new Error(
-          "Failed creating knife"
-        );
+}
 
-      }
 
 
 
 
-      navigate("/admin");
 
 
 
-    }
 
-    catch(err){
+async function handleSubmit(
+e:React.FormEvent
+){
 
 
-      console.log(err);
+e.preventDefault();
 
 
-      setError(
-        "Something went wrong creating knife"
-      );
+setLoading(true);
 
+setError("");
 
-    }
 
 
-    finally{
+try{
 
 
-      setLoading(false);
+const formData =
+new FormData();
 
 
-    }
 
 
+Object.entries(form)
+.forEach(([key,value])=>{
 
-  }
+
+formData.append(
+key,
+value
+);
+
+
+});
+
+
+
+
+
+
+
+if(images){
+
+
+Array.from(images)
+.forEach(image=>{
+
+
+formData.append(
+"images",
+image
+);
+
+
+});
+
+
+}
+
+
+
+
+
+
+
+const response =
+await fetch(
+
+"http://localhost:8080/api/knives",
+
+{
+
+method:"POST",
+
+body:formData
+
+}
+
+);
+
+
+
+
+
+if(!response.ok){
+
+throw new Error(
+"Failed creating knife"
+);
+
+}
+
+
+
+
+
+navigate("/admin");
+
+
+
+
+}catch(error){
+
+
+console.log(
+"CREATE KNIFE ERROR",
+error
+);
+
+
+
+setError(
+"Something went wrong creating knife"
+);
+
+
+
+}finally{
+
+
+setLoading(false);
+
+
+}
+
+
+}
+
 
 
 
@@ -206,7 +308,7 @@ export default function NewKnife() {
 
 return (
 
-<div className="
+<main className="
 min-h-screen
 bg-agane-bg
 text-agane-text
@@ -254,6 +356,8 @@ space-y-8
 
 
 
+
+
 <div className="
 grid
 md:grid-cols-2
@@ -264,20 +368,31 @@ gap-6
 
 
 
+
+
 {[
 
+
 ["title","Knife Name"],
+
 ["slug","Slug"],
-["maker","Maker"],
+
 ["origin","Origin"],
+
 ["steel","Steel"],
+
+["bladeType","Blade Type"],
+
 ["length","Blade Length"],
+
 ["handle","Handle Material"],
+
 ["weight","Weight"],
+
 ["price","Price SEK"]
 
-].map(([name,label])=>(
 
+].map(([name,label])=>(
 
 
 <input
@@ -289,7 +404,9 @@ name={name}
 placeholder={label}
 
 value={
-form[name as keyof typeof form]
+form[
+name as keyof typeof form
+]
 }
 
 onChange={handleChange}
@@ -305,8 +422,9 @@ w-full
 />
 
 
-
 ))}
+
+
 
 
 
@@ -319,7 +437,8 @@ w-full
 
 
 
-{/* STATUS */}
+
+{/* MAKER SELECT */}
 
 
 <div>
@@ -333,9 +452,94 @@ tracking-widest
 mb-3
 ">
 
-Collection Status
+Maker
 
 </label>
+
+
+
+
+<select
+
+name="makerId"
+
+value={form.makerId}
+
+onChange={handleChange}
+
+className="
+border
+border-agane-text
+p-4
+bg-transparent
+w-full
+"
+
+>
+
+
+
+<option value="">
+
+Select Maker
+
+</option>
+
+
+
+{makers.map(maker=>(
+
+
+<option
+
+key={maker.id}
+
+value={maker.id}
+
+>
+
+{maker.name}
+
+</option>
+
+
+))}
+
+
+
+</select>
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+{/* STATUS */}
+
+
+
+<div>
+
+
+<label className="
+block
+uppercase
+text-xs
+tracking-widest
+mb-3
+">
+
+Status
+
+</label>
+
 
 
 
@@ -360,7 +564,7 @@ w-full
 
 <option value="available">
 
-Available Now
+Available
 
 </option>
 
@@ -377,6 +581,7 @@ Sold
 Archive
 
 </option>
+
 
 
 </select>
@@ -397,7 +602,9 @@ Archive
 
 name="description"
 
-placeholder="Knife story / description..."
+placeholder="
+Knife story / description...
+"
 
 value={form.description}
 
@@ -443,7 +650,11 @@ multiple
 accept="image/*"
 
 onChange={(e)=>
-setImages(e.target.files)
+
+setImages(
+e.target.files
+)
+
 }
 
 className="
@@ -488,9 +699,9 @@ text-red-600
 
 <button
 
-type="submit"
-
 disabled={loading}
+
+type="submit"
 
 className="
 bg-black
@@ -502,22 +713,29 @@ border-black
 hover:bg-transparent
 hover:text-black
 transition
-disabled:opacity-50
 "
 
 >
 
 
 {
+
 loading
+
 ?
+
 "Saving Knife..."
+
 :
+
 "Save Knife"
+
 }
 
 
 </button>
+
+
 
 
 
@@ -533,8 +751,7 @@ loading
 </div>
 
 
-</div>
-
+</main>
 
 );
 

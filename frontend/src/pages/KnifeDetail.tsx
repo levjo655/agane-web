@@ -1,5 +1,31 @@
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import {
+  useEffect,
+  useState
+} from "react";
+
+import {
+  useParams,
+  Link
+} from "react-router-dom";
+
+
+
+
+
+type Maker = {
+
+  id:string;
+
+  name:string;
+
+  slug:string;
+
+  country?:string;
+
+};
+
+
+
 
 
 type Knife = {
@@ -10,7 +36,7 @@ type Knife = {
 
   title:string;
 
-  maker:string;
+  maker:Maker;
 
   origin?:string;
 
@@ -38,25 +64,37 @@ type Knife = {
 
 
 
+
+
+
+
 export default function KnifeDetail(){
 
 
-const { slug } =
-useParams();
+
+const {
+slug
+}=useParams();
 
 
 
-const [knife,setKnife] =
+
+const [knife,setKnife]
+=
 useState<Knife | null>(null);
 
 
 
-const [loading,setLoading] =
+
+const [loading,setLoading]
+=
 useState(true);
 
 
 
-const [activeImage,setActiveImage] =
+
+const [activeImage,setActiveImage]
+=
 useState("");
 
 
@@ -65,7 +103,9 @@ useState("");
 
 
 
+
 useEffect(()=>{
+
 
 
 async function loadKnife(){
@@ -83,8 +123,25 @@ await fetch(
 
 
 
+
+
+if(!response.ok){
+
+
+throw new Error(
+"Knife not found"
+);
+
+
+}
+
+
+
+
+
 const data =
 await response.json();
+
 
 
 
@@ -92,13 +149,18 @@ setKnife(data);
 
 
 
+
+
 if(data.images?.length){
+
 
 setActiveImage(
 data.images[0]
 );
 
+
 }
+
 
 
 
@@ -106,9 +168,13 @@ data.images[0]
 
 
 console.log(
+
 "DETAIL ERROR",
+
 error
+
 );
+
 
 
 }finally{
@@ -124,7 +190,13 @@ setLoading(false);
 
 
 
+
+
+if(slug){
+
 loadKnife();
+
+}
 
 
 
@@ -137,7 +209,9 @@ loadKnife();
 
 
 
+
 if(loading){
+
 
 return (
 
@@ -146,9 +220,10 @@ min-h-screen
 flex
 items-center
 justify-center
+bg-agane-bg
 ">
 
-Loading...
+Loading knife...
 
 </div>
 
@@ -165,6 +240,7 @@ Loading...
 
 if(!knife){
 
+
 return (
 
 <div className="
@@ -172,6 +248,7 @@ min-h-screen
 flex
 items-center
 justify-center
+bg-agane-bg
 ">
 
 Knife not found
@@ -190,8 +267,8 @@ Knife not found
 
 
 
-return (
 
+return (
 
 <main className="
 min-h-screen
@@ -202,13 +279,10 @@ py-20
 ">
 
 
-
 <div className="
 max-w-7xl
 mx-auto
 ">
-
-
 
 
 
@@ -233,11 +307,16 @@ gap-16
 <div>
 
 
-
 <div className="
 bg-white
 overflow-hidden
 ">
+
+
+{
+
+activeImage && (
+
 
 <img
 
@@ -255,8 +334,13 @@ object-cover
 
 />
 
-</div>
 
+)
+
+}
+
+
+</div>
 
 
 
@@ -267,10 +351,13 @@ object-cover
 flex
 gap-4
 mt-6
+flex-wrap
 ">
 
 
-{knife.images?.map(image=>(
+{
+
+knife.images?.map(image=>(
 
 
 <button
@@ -283,6 +370,7 @@ className="
 border
 overflow-hidden
 "
+
 
 >
 
@@ -305,14 +393,10 @@ object-cover
 </button>
 
 
-
-))}
-
+))
 
 
-</div>
-
-
+}
 
 
 </div>
@@ -322,10 +406,17 @@ object-cover
 
 
 
+</div>
 
 
 
-{/* INFO */}
+
+
+
+
+
+
+{/* INFORMATION */}
 
 
 
@@ -339,17 +430,25 @@ justify-center
 
 
 
+<Link
 
-<p className="
+to={`/makers/${knife.maker.slug}`}
+
+className="
 uppercase
 tracking-[0.35em]
 text-sm
 opacity-60
-">
+hover:opacity-100
+"
 
-{knife.maker}
+>
 
-</p>
+
+{knife.maker.name}
+
+
+</Link>
 
 
 
@@ -372,6 +471,7 @@ mt-6
 
 
 
+
 <div className="
 mt-10
 grid
@@ -380,6 +480,10 @@ gap-8
 border-y
 py-10
 ">
+
+
+
+
 
 
 
@@ -396,7 +500,7 @@ Steel
 </p>
 
 
-<p className="mt-2">
+<p>
 
 {knife.steel || "-"}
 
@@ -404,6 +508,7 @@ Steel
 
 
 </div>
+
 
 
 
@@ -424,7 +529,7 @@ Origin
 </p>
 
 
-<p className="mt-2">
+<p>
 
 {knife.origin || "-"}
 
@@ -432,6 +537,8 @@ Origin
 
 
 </div>
+
+
 
 
 
@@ -446,12 +553,12 @@ uppercase
 opacity-50
 ">
 
-Blade
+Blade Length
 
 </p>
 
 
-<p className="mt-2">
+<p>
 
 {knife.length || "-"}
 
@@ -459,6 +566,7 @@ Blade
 
 
 </div>
+
 
 
 
@@ -479,7 +587,7 @@ Handle
 </p>
 
 
-<p className="mt-2">
+<p>
 
 {knife.handle || "-"}
 
@@ -487,6 +595,8 @@ Handle
 
 
 </div>
+
+
 
 
 
@@ -506,9 +616,10 @@ Weight
 </p>
 
 
-<p className="mt-2">
+<p>
 
-{knife.weight
+{
+knife.weight
 ?
 `${knife.weight}g`
 :
@@ -519,6 +630,8 @@ Weight
 
 
 </div>
+
+
 
 
 
@@ -538,7 +651,7 @@ Status
 </p>
 
 
-<p className="mt-2">
+<p>
 
 {knife.status.toUpperCase()}
 
@@ -546,6 +659,7 @@ Status
 
 
 </div>
+
 
 
 
@@ -579,25 +693,22 @@ opacity-80
 
 
 
-
 <div className="
 mt-12
 flex
-items-center
 justify-between
+items-center
 ">
 
 
-
-<span className="
+<h2 className="
 text-3xl
 font-serif
 ">
 
 {knife.price} SEK
 
-</span>
-
+</h2>
 
 
 
@@ -631,10 +742,6 @@ Contact Ågane →
 
 
 
-</div>
-
-
-
 
 
 
@@ -645,12 +752,21 @@ Contact Ågane →
 
 
 
+
+
 </div>
 
+
+
+
+
+
+
+
+</div>
 
 
 </main>
-
 
 
 );

@@ -1,5 +1,16 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
+
+type Maker = {
+
+id:string;
+
+name:string;
+
+country?:string;
+
+};
 
 
 
@@ -9,32 +20,26 @@ export default function NewCollaboration(){
 const navigate = useNavigate();
 
 
-
-const [loading,setLoading] =
-useState(false);
-
-
-
-const [error,setError] =
-useState("");
+const [makers,setMakers] =
+useState<Maker[]>([]);
 
 
 
+const [form,setForm] = useState({
 
+title:"",
 
-const [form,setForm] =
-useState({
+makerId:"",
 
-  maker:"",
-  title:"",
-  description:"",
-  quantity:"",
-  status:"upcoming",
-  releaseDate:""
+description:"",
+
+quantity:"",
+
+status:"upcoming",
+
+releaseDate:""
 
 });
-
-
 
 
 
@@ -46,13 +51,62 @@ useState<File | null>(null);
 
 
 
+useEffect(()=>{
 
-function handleChange(
-e:React.ChangeEvent<
-HTMLInputElement |
-HTMLTextAreaElement |
-HTMLSelectElement
->
+
+async function loadMakers(){
+
+
+try{
+
+
+const res =
+await fetch(
+"http://localhost:8080/api/makers"
+);
+
+
+const data =
+await res.json();
+
+
+if(Array.isArray(data)){
+
+setMakers(data);
+
+}
+
+
+}catch(error){
+
+
+console.log(
+"LOAD MAKERS ERROR",
+error
+);
+
+
+}
+
+
+}
+
+
+
+loadMakers();
+
+
+},[]);
+
+
+
+
+
+
+
+
+function update(
+e:React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
 ){
 
 
@@ -60,13 +114,14 @@ setForm({
 
 ...form,
 
-[e.target.name]:
-e.target.value
+[e.target.name]:e.target.value
 
 });
 
 
 }
+
+
 
 
 
@@ -82,11 +137,6 @@ e:React.FormEvent
 e.preventDefault();
 
 
-setLoading(true);
-
-setError("");
-
-
 
 try{
 
@@ -96,30 +146,58 @@ new FormData();
 
 
 
-Object.entries(form)
-.forEach(([key,value])=>{
-
-
 formData.append(
-key,
-value
+"title",
+form.title
 );
 
 
-});
+
+formData.append(
+"makerId",
+form.makerId
+);
 
 
+
+formData.append(
+"description",
+form.description
+);
+
+
+
+formData.append(
+"quantity",
+form.quantity
+);
+
+
+
+formData.append(
+"status",
+form.status
+);
+
+
+
+if(form.releaseDate){
+
+formData.append(
+"releaseDate",
+form.releaseDate
+);
+
+}
 
 
 
 if(image){
 
-
 formData.append(
 "image",
 image
 );
-
 
 }
 
@@ -127,7 +205,9 @@ image
 
 
 
-const response =
+
+
+const res =
 await fetch(
 
 "http://localhost:8080/api/collaborations",
@@ -146,7 +226,14 @@ body:formData
 
 
 
-if(!response.ok){
+if(!res.ok){
+
+const error =
+await res.json();
+
+
+console.log(error);
+
 
 throw new Error(
 "Failed creating collaboration"
@@ -161,32 +248,19 @@ navigate("/admin");
 
 
 
+}catch(error){
 
 
-}catch(err){
-
-
-console.log(err);
-
-
-setError(
-"Something went wrong"
+console.error(
+"CREATE COLLAB ERROR",
+error
 );
 
 
-
-}finally{
-
-
-setLoading(false);
-
-
 }
 
 
-
 }
-
 
 
 
@@ -197,8 +271,7 @@ setLoading(false);
 
 return (
 
-
-<div className="
+<main className="
 min-h-screen
 bg-agane-bg
 text-agane-text
@@ -207,18 +280,16 @@ py-16
 ">
 
 
-
 <div className="
-max-w-4xl
+max-w-xl
 mx-auto
 ">
-
 
 
 <h1 className="
 text-5xl
 font-serif
-mb-12
+mb-10
 ">
 
 New Collaboration
@@ -229,81 +300,87 @@ New Collaboration
 
 
 
-
-
 <form
-
 onSubmit={handleSubmit}
-
 className="
-space-y-8
+space-y-6
 "
-
 >
 
 
 
 
 
-
-<div className="
-grid
-md:grid-cols-2
-gap-6
-">
-
-
-
-
-
-{[
-
-["maker","Maker"],
-["title","Collaboration Title"],
-["quantity","Number of Blades"],
-["releaseDate","Release Date"]
-
-].map(([name,label])=>(
-
-
 <input
 
-key={name}
+name="title"
 
-name={name}
+placeholder="Collaboration title"
 
-placeholder={label}
+value={form.title}
 
-type={
-name==="releaseDate"
-?
-"date"
-:
-"text"
-}
-
-value={
-form[name as keyof typeof form]
-}
-
-onChange={handleChange}
+onChange={update}
 
 className="
 border
-border-agane-text
-p-4
-bg-transparent
+p-3
+w-full
 "
 
 />
 
 
+
+
+
+
+
+
+<select
+
+name="makerId"
+
+value={form.makerId}
+
+onChange={update}
+
+className="
+border
+p-3
+w-full
+"
+
+>
+
+
+<option value="">
+
+Select maker
+
+</option>
+
+
+
+{makers.map(maker=>(
+
+
+<option
+
+key={maker.id}
+
+value={maker.id}
+
+>
+
+{maker.name}
+
+</option>
+
+
 ))}
 
 
-
-</div>
-
+</select>
 
 
 
@@ -316,21 +393,16 @@ bg-transparent
 
 name="description"
 
-placeholder="
-Collaboration description...
-"
+placeholder="Description"
 
 value={form.description}
 
-onChange={handleChange}
+onChange={update}
 
 className="
 border
-border-agane-text
-p-4
+p-3
 w-full
-h-40
-bg-transparent
 "
 
 />
@@ -343,18 +415,30 @@ bg-transparent
 
 
 
+<input
 
-<div>
+name="quantity"
+
+type="number"
+
+placeholder="Quantity"
+
+value={form.quantity}
+
+onChange={update}
+
+className="
+border
+p-3
+w-full
+"
+
+/>
 
 
-<label className="
-block
-mb-3
-">
 
-Status
 
-</label>
+
 
 
 
@@ -364,14 +448,12 @@ name="status"
 
 value={form.status}
 
-onChange={handleChange}
+onChange={update}
 
 className="
 border
-border-agane-text
-p-4
+p-3
 w-full
-bg-transparent
 "
 
 >
@@ -384,45 +466,54 @@ Upcoming
 </option>
 
 
-<option value="active">
+<option value="available">
 
-Active
-
-</option>
-
-
-<option value="completed">
-
-Completed
+Available
 
 </option>
 
+
+<option value="sold">
+
+Sold
+
+</option>
 
 
 </select>
 
 
 
-</div>
 
 
 
 
 
 
+<input
 
+type="date"
 
+name="releaseDate"
 
-<div className="
+value={form.releaseDate}
+
+onChange={update}
+
+className="
 border
-border-agane-text
-p-6
-">
+p-3
+w-full
+"
+
+/>
 
 
-<label>
 
-Upload Collaboration Image
+
+
+
+
 
 
 <input
@@ -432,43 +523,15 @@ type="file"
 accept="image/*"
 
 onChange={(e)=>
+
 setImage(
 e.target.files?.[0] || null
 )
-}
 
-className="
-block
-mt-4
-"
+}
 
 />
 
-
-</label>
-
-
-</div>
-
-
-
-
-
-
-
-
-
-{error && (
-
-<p className="
-text-red-600
-">
-
-{error}
-
-</p>
-
-)}
 
 
 
@@ -478,34 +541,17 @@ text-red-600
 
 <button
 
-disabled={loading}
-
 className="
-bg-black
-text-white
-px-12
-py-4
 border
-border-black
-hover:bg-transparent
-hover:text-black
-transition
+px-8
+py-3
 "
 
 >
 
-
-{
-loading
-?
-"Saving..."
-:
-"Create Collaboration"
-}
-
+Create Collaboration
 
 </button>
-
 
 
 
@@ -515,14 +561,10 @@ loading
 
 
 
-
-
-
 </div>
 
 
-</div>
-
+</main>
 
 );
 

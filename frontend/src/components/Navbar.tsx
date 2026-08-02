@@ -111,17 +111,10 @@ export default function Navbar(){
         >
 
           <img
-
-            src="/public/agane_logo.png"
-
-            alt="Ågane"
-
-            className="
-              h-20
-              object-contain
-            "
-
-          />
+  src="/knives/agane_logo.png"
+  alt="Ågane"
+  className="h-12 w-auto"
+/>
 
         </Link>
 

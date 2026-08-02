@@ -2,11 +2,25 @@ import { useEffect, useState } from "react";
 
 
 
+type Maker = {
+
+  id:string;
+
+  name:string;
+
+  country?:string;
+
+};
+
+
+
+
+
 type Collaboration = {
 
   id:string;
 
-  maker:string;
+  maker?:Maker;
 
   title:string;
 
@@ -21,6 +35,9 @@ type Collaboration = {
   image?:string;
 
 };
+
+
+
 
 
 
@@ -48,15 +65,29 @@ useState(true);
 useEffect(()=>{
 
 
-fetch(
+async function loadCollaborations(){
+
+
+try{
+
+
+const res =
+await fetch(
 "http://localhost:8080/api/collaborations"
-)
+);
 
 
-.then(res=>res.json())
+
+const data =
+await res.json();
 
 
-.then(data=>{
+
+console.log(
+"COLLAB DATA:",
+data
+);
+
 
 
 if(Array.isArray(data)){
@@ -68,28 +99,31 @@ setCollaborations(data);
 }
 
 
-})
 
-
-.catch(error=>{
+}catch(error){
 
 
 console.log(
-"COLLAB PAGE ERROR",
+"COLLAB PAGE ERROR:",
 error
 );
 
 
-})
-
-
-.finally(()=>{
+}
+finally{
 
 
 setLoading(false);
 
 
-});
+}
+
+
+}
+
+
+
+loadCollaborations();
 
 
 
@@ -114,13 +148,10 @@ py-20
 ">
 
 
-
 <div className="
 max-w-7xl
 mx-auto
 ">
-
-
 
 
 
@@ -159,7 +190,6 @@ Limited creations.
 
 
 
-
 <p className="
 mt-8
 max-w-xl
@@ -176,7 +206,6 @@ handcrafted pieces.
 
 
 </header>
-
 
 
 
@@ -213,6 +242,7 @@ gap-12
 
 
 
+
 {collaborations.map(collab=>(
 
 
@@ -235,6 +265,7 @@ group
 
 
 
+
 {collab.image && (
 
 <img
@@ -249,9 +280,6 @@ className="
 w-full
 h-[450px]
 object-cover
-group-hover:scale-105
-transition
-duration-500
 "
 
 />
@@ -270,6 +298,7 @@ p-10
 
 
 
+
 <p className="
 uppercase
 tracking-[0.3em]
@@ -277,9 +306,10 @@ text-xs
 opacity-60
 ">
 
-{collab.maker}
+{collab.maker?.name || "Unknown Maker"}
 
 </p>
+
 
 
 
@@ -333,7 +363,6 @@ justify-between
 
 <div>
 
-
 <p className="
 text-xs
 uppercase
@@ -362,7 +391,6 @@ Edition
 
 <div>
 
-
 <p className="
 text-xs
 uppercase
@@ -386,18 +414,15 @@ Status
 
 
 
-</div>
-
-
-
-
-
-
-
 
 </div>
 
 
+
+
+
+
+</div>
 
 
 
@@ -412,8 +437,6 @@ Status
 
 
 </div>
-
-
 
 
 

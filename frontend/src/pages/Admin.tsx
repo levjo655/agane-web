@@ -1,6 +1,35 @@
-import { useEffect, useState } from "react";
-import { useAuth0 } from "@auth0/auth0-react";
-import { useNavigate } from "react-router-dom";
+import {
+  useEffect,
+  useState
+} from "react";
+
+import {
+  useAuth0
+} from "@auth0/auth0-react";
+
+import {
+  useNavigate
+} from "react-router-dom";
+
+
+
+
+
+type Maker = {
+
+  id:string;
+
+  name:string;
+
+  slug:string;
+
+  country?:string;
+
+  bio?:string;
+
+};
+
+
 
 
 
@@ -10,17 +39,17 @@ type Knife = {
 
   title:string;
 
-  maker:string;
-
-  steel?:string;
-
-  price:number | string;
-
-  images:string[];
+  price:number;
 
   status:string;
 
+  images:string[];
+
+  maker?:Maker;
+
 };
+
+
 
 
 
@@ -28,17 +57,20 @@ type Collaboration = {
 
   id:string;
 
-  maker:string;
-
   title:string;
-
-  description?:string;
 
   quantity:number;
 
   status:string;
 
+  description?:string;
+
+  maker?:Maker;
+
 };
+
+
+
 
 
 
@@ -47,30 +79,47 @@ type Collaboration = {
 export default function Admin(){
 
 
-const navigate = useNavigate();
+
+const navigate =
+useNavigate();
+
 
 
 const {
-  user,
-  logout
-} = useAuth0();
+user,
+logout
+}=useAuth0();
 
 
 
 
 
-const [loading,setLoading] =
+const [loading,setLoading]
+=
 useState(true);
 
 
 
-const [knives,setKnives] =
+const [makers,setMakers]
+=
+useState<Maker[]>([]);
+
+
+
+const [knives,setKnives]
+=
 useState<Knife[]>([]);
 
 
 
-const [collaborations,setCollaborations] =
+const [collaborations,setCollaborations]
+=
 useState<Collaboration[]>([]);
+
+
+
+
+
 
 
 
@@ -82,16 +131,41 @@ async function loadData(){
 try{
 
 
+// MAKERS
+
+const makersResponse =
+await fetch(
+"http://localhost:8080/api/makers"
+);
+
+
+const makersData =
+await makersResponse.json();
+
+
+if(Array.isArray(makersData)){
+
+setMakers(makersData);
+
+}
+
+
+
+
+
+
+
+
+// KNIVES
+
 const knivesResponse =
 await fetch(
 "http://localhost:8080/api/knives"
 );
 
 
-
 const knivesData =
 await knivesResponse.json();
-
 
 
 if(Array.isArray(knivesData)){
@@ -104,17 +178,19 @@ setKnives(knivesData);
 
 
 
+
+
+
+// COLLABORATIONS
+
 const collabResponse =
 await fetch(
 "http://localhost:8080/api/collaborations"
 );
 
 
-
 const collabData =
 await collabResponse.json();
-
-
 
 
 if(Array.isArray(collabData)){
@@ -122,6 +198,8 @@ if(Array.isArray(collabData)){
 setCollaborations(collabData);
 
 }
+
+
 
 
 
@@ -134,7 +212,8 @@ error
 );
 
 
-}finally{
+}
+finally{
 
 
 setLoading(false);
@@ -143,8 +222,8 @@ setLoading(false);
 }
 
 
-}
 
+}
 
 
 
@@ -167,107 +246,12 @@ loadData();
 
 
 
-
-function statusBadge(status:string){
-
-
-
-if(status==="sold"){
-
-return (
-
-<span className="
-inline-block
-bg-black
-text-white
-px-4
-py-1
-text-xs
-tracking-widest
-">
-
-SOLD
-
-</span>
-
-);
-
-}
-
-
-
-
-
-if(status==="archive"){
-
-return (
-
-<span className="
-inline-block
-border
-px-4
-py-1
-text-xs
-tracking-widest
-">
-
-ARCHIVE
-
-</span>
-
-);
-
-}
-
-
-
-
-
-return (
-
-<span className="
-inline-block
-border
-px-4
-py-1
-text-xs
-tracking-widest
-">
-
-AVAILABLE
-
-</span>
-
-);
-
-
-}
-
-
-
-
-
-
-
-
-
 async function deleteKnife(id:string){
 
 
-const confirmDelete =
-window.confirm(
-"Delete this knife?"
-);
-
-
-
-if(!confirmDelete)
+if(!confirm("Delete knife?"))
 return;
 
-
-
-
-try{
 
 
 await fetch(
@@ -294,18 +278,6 @@ knife=>knife.id!==id
 
 
 
-}catch(error){
-
-
-console.log(
-"DELETE KNIFE ERROR",
-error
-);
-
-
-}
-
-
 }
 
 
@@ -319,20 +291,9 @@ error
 async function deleteCollaboration(id:string){
 
 
-const confirmDelete =
-window.confirm(
-"Delete this collaboration?"
-);
-
-
-
-if(!confirmDelete)
+if(!confirm("Delete collaboration?"))
 return;
 
-
-
-
-try{
 
 
 await fetch(
@@ -352,23 +313,11 @@ method:"DELETE"
 setCollaborations(prev=>
 
 prev.filter(
-collab=>collab.id!==id
+item=>item.id!==id
 )
 
 );
 
-
-
-}catch(error){
-
-
-console.log(
-"DELETE COLLAB ERROR",
-error
-);
-
-
-}
 
 
 }
@@ -382,7 +331,6 @@ error
 
 
 return (
-
 
 <main className="
 min-h-screen
@@ -403,6 +351,7 @@ mx-auto
 
 
 
+
 <header className="
 flex
 justify-between
@@ -411,9 +360,7 @@ mb-16
 ">
 
 
-
 <div>
-
 
 <h1 className="
 text-5xl
@@ -425,16 +372,14 @@ font-serif
 </h1>
 
 
-
 <p className="
 mt-3
 opacity-70
 ">
 
-Welcome back {user?.name}
+Welcome {user?.name}
 
 </p>
-
 
 
 </div>
@@ -442,21 +387,9 @@ Welcome back {user?.name}
 
 
 
-
-
-
 <button
 
-onClick={()=>logout({
-
-logoutParams:{
-
-returnTo:
-window.location.origin
-
-}
-
-})}
+onClick={()=>logout()}
 
 className="
 border
@@ -481,8 +414,8 @@ Logout
 
 
 
-
-{loading && (
+{
+loading && (
 
 <p>
 
@@ -490,7 +423,9 @@ Loading...
 
 </p>
 
-)}
+)
+
+}
 
 
 
@@ -500,12 +435,11 @@ Loading...
 
 
 
-{/* KNIVES */}
+{/* MAKERS */}
 
 
 
 <section>
-
 
 
 <div className="
@@ -521,7 +455,7 @@ text-4xl
 font-serif
 ">
 
-Knife Collection
+Makers
 
 </h2>
 
@@ -529,20 +463,21 @@ Knife Collection
 
 <button
 
-onClick={()=>navigate("/admin/new")}
+onClick={()=>navigate(
+"/admin/maker/new"
+)}
 
 className="
 border
-px-8
+px-6
 py-3
 "
 
 >
 
-+ Add Knife
++ Add Maker
 
 </button>
-
 
 
 </div>
@@ -560,151 +495,62 @@ gap-10
 ">
 
 
+{
 
-{knives.map(knife=>(
-
+makers.map(maker=>(
 
 
 <article
 
-key={knife.id}
+key={maker.id}
 
 className="
 bg-white
 border
-p-6
+p-8
 "
 
 >
 
 
-
-{knife.images?.[0] && (
-
-<img
-
-src={
-`http://localhost:8080${knife.images[0]}`
-}
-
-className="
-h-72
-w-full
-object-cover
-"
-
-/>
-
-)}
-
-
-
-
 <h3 className="
-text-2xl
+text-3xl
 font-serif
-mt-5
 ">
 
-{knife.title}
+{maker.name}
 
 </h3>
 
 
 
+<p className="
+mt-3
+opacity-60
+">
 
-<p>
-
-{knife.maker}
+{maker.country}
 
 </p>
 
 
 
 <p className="
-mt-3
+mt-4
+opacity-70
 ">
 
-{knife.price} SEK
+{maker.bio}
 
 </p>
-
-
-
-<div className="
-mt-4
-">
-
-{statusBadge(
-knife.status
-)}
-
-</div>
-
-
-
-
-
-<div className="
-mt-6
-flex
-gap-3
-">
-
-
-
-<button
-
-onClick={()=>navigate(
-`/admin/knife/${knife.id}/edit`
-)}
-
-className="
-border
-px-5
-py-2
-"
-
->
-
-Edit
-
-</button>
-
-
-
-
-
-<button
-
-onClick={()=>deleteKnife(
-knife.id
-)}
-
-className="
-border
-border-red-600
-text-red-600
-px-5
-py-2
-"
-
->
-
-Delete
-
-</button>
-
-
-
-</div>
-
 
 
 </article>
 
 
-))}
+))
+
+}
 
 
 
@@ -722,7 +568,7 @@ Delete
 
 
 
-{/* COLLABORATIONS */}
+{/* KNIVES */}
 
 
 
@@ -745,9 +591,190 @@ text-4xl
 font-serif
 ">
 
+Knives
+
+</h2>
+
+
+
+<button
+
+onClick={()=>navigate(
+"/admin/new"
+)}
+
+className="
+border
+px-6
+py-3
+"
+
+>
+
++ Add Knife
+
+</button>
+
+
+
+</div>
+
+
+
+
+
+
+<div className="
+grid
+md:grid-cols-3
+gap-10
+">
+
+
+{
+
+knives.map(knife=>(
+
+
+<article
+
+key={knife.id}
+
+className="
+bg-white
+border
+p-6
+"
+
+>
+
+
+{
+knife.images?.[0] && (
+
+<img
+
+src={
+"http://localhost:8080"+knife.images[0]
+}
+
+className="
+h-64
+w-full
+object-cover
+"
+
+/>
+
+)
+
+}
+
+
+
+
+<h3 className="
+text-2xl
+font-serif
+mt-5
+">
+
+{knife.title}
+
+</h3>
+
+
+
+
+<p>
+
+Maker:
+
+{" "}
+
+{knife.maker?.name || "Unknown"}
+
+</p>
+
+
+
+<p>
+
+{knife.price} SEK
+
+</p>
+
+
+
+<button
+
+onClick={()=>deleteKnife(knife.id)}
+
+className="
+mt-5
+border
+border-red-600
+text-red-600
+px-4
+py-2
+"
+
+>
+
+Delete
+
+</button>
+
+
+
+</article>
+
+
+))
+
+}
+
+
+
+</div>
+
+
+</section>
+
+
+
+
+
+
+
+
+
+{/* COLLABORATIONS */}
+
+
+
+<section className="
+mt-32
+">
+
+
+<div className="
+flex
+justify-between
+items-center
+mb-10
+">
+
+
+<h2 className="
+text-4xl
+font-serif
+">
+
 Collaborations
 
 </h2>
+
 
 
 
@@ -759,7 +786,7 @@ onClick={()=>navigate(
 
 className="
 border
-px-8
+px-6
 py-3
 "
 
@@ -778,9 +805,6 @@ py-3
 
 
 
-
-
-
 <div className="
 grid
 md:grid-cols-2
@@ -788,11 +812,9 @@ gap-10
 ">
 
 
+{
 
-
-
-{collaborations.map(collab=>(
-
+collaborations.map(collab=>(
 
 
 <article
@@ -808,7 +830,6 @@ p-8
 >
 
 
-
 <h3 className="
 text-3xl
 font-serif
@@ -820,11 +841,13 @@ font-serif
 
 
 
-<p className="mt-3">
+<p>
 
 Maker:
+
 {" "}
-{collab.maker}
+
+{collab.maker?.name || "Unknown"}
 
 </p>
 
@@ -832,67 +855,22 @@ Maker:
 
 <p>
 
-{collab.quantity} knives
+{collab.quantity} pieces
 
 </p>
 
 
 
+<button
 
-<p className="
+onClick={()=>deleteCollaboration(collab.id)}
+
+className="
 mt-5
-opacity-70
-">
-
-{collab.description}
-
-</p>
-
-
-
-
-
-<div className="
-mt-8
-flex
-gap-3
-">
-
-
-
-<button
-
-onClick={()=>navigate(
-`/admin/collaboration/${collab.id}/edit`
-)}
-
-className="
-border
-px-5
-py-2
-"
-
->
-
-Edit
-
-</button>
-
-
-
-
-
-<button
-
-onClick={()=>deleteCollaboration(
-collab.id
-)}
-
-className="
 border
 border-red-600
 text-red-600
-px-5
+px-4
 py-2
 "
 
@@ -904,25 +882,16 @@ Delete
 
 
 
-</div>
-
-
-
-
-
 </article>
 
 
+))
 
-))}
-
-
+}
 
 
 
 </div>
-
-
 
 
 

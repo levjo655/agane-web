@@ -15,40 +15,35 @@ const router = Router();
 
 const storage = multer.diskStorage({
 
-  destination: (_req,_file,cb)=>{
+destination:(_req,_file,cb)=>{
 
-    cb(null,"uploads/");
+cb(null,"uploads/");
 
-  },
-
-
-  filename: (_req,file,cb)=>{
+},
 
 
-    const uniqueName =
-      Date.now()
-      +
-      "-"
-      +
-      file.originalname.replace(/\s+/g,"-");
+filename:(_req,file,cb)=>{
 
 
+const filename =
+Date.now()
++
+"-"
++
+file.originalname.replace(/\s+/g,"-");
 
-    cb(
-      null,
-      uniqueName
-    );
+
+cb(null,filename);
 
 
-  }
+}
 
 
 });
 
 
-
 const upload = multer({
-  storage
+storage
 });
 
 
@@ -73,11 +68,19 @@ try{
 const collaborations =
 await prisma.collaboration.findMany({
 
+include:{
+
+maker:true
+
+},
+
+
 orderBy:{
 
 createdAt:"desc"
 
 }
+
 
 });
 
@@ -91,7 +94,7 @@ res.json(collaborations);
 
 
 console.error(
-"FETCH COLLAB ERROR:",
+"GET COLLABORATIONS ERROR:",
 error
 );
 
@@ -135,9 +138,18 @@ where:{
 
 id:req.params.id
 
+},
+
+
+include:{
+
+maker:true
+
 }
 
+
 });
+
 
 
 
@@ -157,7 +169,6 @@ error:"Collaboration not found"
 
 
 
-
 res.json(collaboration);
 
 
@@ -166,7 +177,7 @@ res.json(collaboration);
 
 
 console.error(
-"GET COLLAB ERROR:",
+"GET COLLABORATION ERROR:",
 error
 );
 
@@ -203,7 +214,6 @@ router.post(
 
 upload.single("image"),
 
-
 async(req,res)=>{
 
 
@@ -227,46 +237,42 @@ await prisma.collaboration.create({
 data:{
 
 
-title:
-req.body.title,
+title:req.body.title,
 
 
-maker:
-req.body.maker,
+makerId:req.body.makerId || null,
 
 
-description:
-req.body.description || null,
+description:req.body.description || null,
 
 
-quantity:
-Number(req.body.quantity),
+quantity:Number(req.body.quantity),
 
 
-
-status:
-req.body.status || "upcoming",
+status:req.body.status || "upcoming",
 
 
-
-releaseDate:
-req.body.releaseDate
+releaseDate:req.body.releaseDate
 ?
 new Date(req.body.releaseDate)
 :
 null,
 
 
-
-image:
-imagePath
+image:imagePath
 
 
+},
+
+
+include:{
+
+maker:true
 
 }
 
-});
 
+});
 
 
 
@@ -280,7 +286,7 @@ res.json(collaboration);
 
 console.error(
 
-"CREATE COLLAB ERROR:",
+"CREATE COLLABORATION ERROR:",
 error
 
 );
@@ -295,7 +301,6 @@ error:"Failed creating collaboration"
 
 
 }
-
 
 
 }
@@ -334,29 +339,22 @@ id:req.params.id
 data:{
 
 
-title:
-req.body.title,
+title:req.body.title,
 
 
-maker:
-req.body.maker,
+makerId:req.body.makerId || null,
 
 
-description:
-req.body.description || null,
+description:req.body.description || null,
 
 
-quantity:
-Number(req.body.quantity),
+quantity:Number(req.body.quantity),
 
 
-status:
-req.body.status || "upcoming",
+status:req.body.status || "upcoming",
 
 
-
-releaseDate:
-req.body.releaseDate
+releaseDate:req.body.releaseDate
 ?
 new Date(req.body.releaseDate)
 :
@@ -364,10 +362,17 @@ null
 
 
 
+},
+
+
+include:{
+
+maker:true
+
 }
 
-});
 
+});
 
 
 
@@ -381,7 +386,7 @@ res.json(collaboration);
 
 console.error(
 
-"UPDATE COLLAB ERROR:",
+"UPDATE COLLABORATION ERROR:",
 error
 
 );
@@ -431,7 +436,6 @@ id:req.params.id
 
 
 
-
 res.json({
 
 message:"Collaboration deleted"
@@ -445,7 +449,7 @@ message:"Collaboration deleted"
 
 console.error(
 
-"DELETE COLLAB ERROR:",
+"DELETE COLLABORATION ERROR:",
 error
 
 );

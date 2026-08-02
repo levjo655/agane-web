@@ -12,7 +12,9 @@ import Navbar from "./components/Navbar";
 import KnifeDetail from "./pages/KnifeDetail";
 import EditKnife from "./pages/EditKnife";
 import Collaborations from "./pages/Collaborations";
-
+import MakerProfile from "./pages/MakerProfile";
+import Makers from "./pages/Makers";
+import NewMaker from "./pages/NewMaker";
 
 
 
@@ -35,6 +37,32 @@ function App() {
 
 
       <Routes>
+        <Route
+ path="/admin/makers"
+ element={
+   <ProtectedRoute>
+     <Makers />
+   </ProtectedRoute>
+ }
+/>
+<Route
+path="/admin/makers"
+element={<Makers/>}
+/>
+<Route
+path="/admin/maker/new"
+element={<NewMaker/>}
+/>
+
+
+<Route
+ path="/admin/makers/new"
+ element={
+   <ProtectedRoute>
+     <NewMaker />
+   </ProtectedRoute>
+ }
+/>
 
 
         {/* PUBLIC */}
@@ -69,6 +97,13 @@ element={<Collaborations />}
       <EditKnife />
     </ProtectedRoute>
   }
+/>
+<Route
+
+path="/makers/:maker"
+
+element={<MakerProfile />}
+
 />
         
 

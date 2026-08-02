@@ -1,5 +1,27 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import {
+  useEffect,
+  useState
+} from "react";
+
+import {
+  Link
+} from "react-router-dom";
+
+
+
+
+
+type Maker = {
+
+  id:string;
+
+  name:string;
+
+  slug:string;
+
+};
+
+
 
 
 
@@ -11,7 +33,7 @@ type Knife = {
 
   title:string;
 
-  maker:string;
+  maker:Maker;
 
   steel?:string;
 
@@ -21,9 +43,11 @@ type Knife = {
 
   status:string;
 
-  images:any;
+  images:string[];
 
 };
+
+
 
 
 
@@ -35,99 +59,90 @@ export default function Collection(){
 
 
 
-  const [knives,setKnives] =
-    useState<Knife[]>([]);
+const [knives,setKnives]
+=
+useState<Knife[]>([]);
 
 
 
-  const [loading,setLoading] =
-    useState(true);
 
+const [loading,setLoading]
+=
+useState(true);
 
 
 
 
 
 
-  useEffect(()=>{
 
 
-    fetch(
-      "http://localhost:8080/api/knives"
-    )
+useEffect(()=>{
 
 
-    .then(res=>res.json())
+async function loadKnives(){
 
 
-    .then(data=>{
+try{
 
 
-      console.log(
-        "COLLECTION DATA:",
-        data
-      );
+const response =
+await fetch(
 
+"http://localhost:8080/api/knives"
 
-      if(Array.isArray(data)){
+);
 
-        setKnives(data);
 
-      }
 
 
-    })
+const data =
+await response.json();
 
 
-    .catch(err=>{
 
 
-      console.log(
-        "COLLECTION ERROR:",
-        err
-      );
+if(Array.isArray(data)){
 
 
-    })
+setKnives(data);
 
 
-    .finally(()=>{
+}
 
 
-      setLoading(false);
 
 
-    });
+}catch(error){
 
 
+console.log(
 
-  },[]);
+"COLLECTION ERROR",
 
+error
 
+);
 
 
 
+}finally{
 
 
+setLoading(false);
 
 
-  const available =
-    knives.filter(
-      knife =>
-        knife.status === "available"
-    );
+}
 
 
+}
 
 
 
-  const archive =
-    knives.filter(
-      knife =>
-        knife.status !== "available"
-    );
+loadKnives();
 
 
+},[]);
 
 
 
@@ -135,529 +150,560 @@ export default function Collection(){
 
 
 
-  return (
 
-    <main className="
-      min-h-screen
-      bg-agane-bg
-      text-agane-text
-      px-6
-      py-20
-    ">
 
+const available =
+knives.filter(
 
+knife=>
+knife.status==="available"
 
-      <div className="
-        max-w-7xl
-        mx-auto
-      ">
+);
 
 
 
 
+const archive =
+knives.filter(
 
+knife=>
+knife.status!=="available"
 
-        <header className="
-          mb-20
-        ">
+);
 
 
-          <h1 className="
-            text-6xl
-            font-serif
-          ">
 
-            Collection
 
-          </h1>
 
 
 
 
-          <p className="
-            mt-6
-            max-w-xl
-            opacity-70
-          ">
 
-            A collection of handcrafted
-            knives created together with
-            exceptional makers.
+if(loading){
 
-          </p>
 
+return (
 
-        </header>
+<div className="
+min-h-screen
+flex
+items-center
+justify-center
+bg-agane-bg
+">
 
+Loading collection...
 
+</div>
 
+);
 
 
+}
 
 
 
 
-        {loading && (
 
-          <p>
 
-            Loading collection...
 
-          </p>
 
-        )}
 
+return (
 
+<main className="
+min-h-screen
+bg-agane-bg
+text-agane-text
+px-6
+py-20
+">
 
 
+<div className="
+max-w-7xl
+mx-auto
+">
 
 
 
 
 
+<header className="
+mb-20
+">
 
 
+<h1 className="
+text-6xl
+font-serif
+">
 
-        {/* AVAILABLE PIECES */}
+Collection
 
+</h1>
 
 
-        {!loading && (
 
+<p className="
+mt-6
+max-w-xl
+text-lg
+opacity-70
+">
 
+A collection of handcrafted knives
+created together with exceptional makers.
 
-        <section>
+</p>
 
 
-          <h2 className="
-            text-4xl
-            font-serif
-            mb-10
-          ">
 
-            Available Pieces
+</header>
 
-          </h2>
 
 
 
 
 
 
-          <div className="
-            grid
-            md:grid-cols-3
-            gap-10
-          ">
 
 
+<section>
 
 
+<h2 className="
+text-4xl
+font-serif
+mb-10
+">
 
+Available Pieces
 
-          {available.map((knife)=>(
+</h2>
 
 
 
-            <article
 
-              key={knife.id}
 
-              className="
-                bg-white
-                border
-                border-agane-border
-                overflow-hidden
-                group
-              "
 
-            >
+<div className="
+grid
+md:grid-cols-3
+gap-10
+">
 
 
 
+{
 
+available.map(knife=>(
 
-              {knife.images?.[0] && (
 
+<article
 
-                <img
+key={knife.id}
 
-                  src={
-                    `http://localhost:8080${knife.images[0]}`
-                  }
+className="
+bg-white
+border
+overflow-hidden
+group
+"
 
-                  alt={knife.title}
+>
 
-                  className="
-                    w-full
-                    h-96
-                    object-cover
-                    group-hover:scale-105
-                    transition
-                    duration-500
-                  "
 
-                />
+<Link
 
+to={`/collection/${knife.slug}`}
 
-              )}
+>
 
 
+{
 
+knife.images?.[0] && (
 
 
+<img
 
+src={
+`http://localhost:8080${knife.images[0]}`
+}
 
+alt={knife.title}
 
+className="
+w-full
+h-96
+object-cover
+group-hover:scale-105
+transition
+duration-500
+"
 
-              <div className="
-                p-8
-              ">
+/>
 
 
+)
 
+}
 
 
 
-                <p className="
-                  text-xs
-                  uppercase
-                  tracking-[0.3em]
-                  opacity-60
-                ">
+</Link>
 
-                  {knife.maker}
 
-                </p>
 
 
 
 
 
+<div className="
+p-8
+">
 
 
-                <h3 className="
-                  text-3xl
-                  font-serif
-                  mt-3
-                ">
 
-                  {knife.title}
 
-                </h3>
 
+<Link
 
+to={`/makers/${knife.maker.slug}`}
 
+className="
+text-xs
+uppercase
+tracking-[0.3em]
+opacity-60
+"
 
+>
 
+{knife.maker.name}
 
+</Link>
 
-                {knife.steel && (
 
 
-                  <p className="
-                    mt-4
-                    opacity-70
-                  ">
 
-                    {knife.steel}
 
-                  </p>
 
 
-                )}
+<Link
 
+to={`/collection/${knife.slug}`}
 
+>
 
 
+<h3 className="
+text-3xl
+font-serif
+mt-4
+">
 
+{knife.title}
 
+</h3>
 
 
+</Link>
 
-                <div className="
-                  mt-8
-                  border-t
-                  pt-5
-                  flex
-                  justify-between
-                  items-center
-                ">
 
 
 
-                  <span>
 
-                    {knife.price} SEK
 
-                  </span>
 
+{
 
+knife.steel && (
 
 
+<p className="
+mt-4
+opacity-70
+">
 
+{knife.steel}
 
-                  <Link
+</p>
 
-                    to={`/collection/${knife.slug}`}
 
-                    className="
-                      text-sm
-                      hover:opacity-60
-                      transition
-                    "
+)
 
-                  >
+}
 
-                    View →
 
-                  </Link>
 
 
 
 
-                </div>
 
+<div className="
+mt-8
+border-t
+pt-5
+flex
+justify-between
+">
 
 
+<span>
 
+{knife.price} SEK
 
+</span>
 
 
-              </div>
 
 
 
+<Link
 
+to={`/collection/${knife.slug}`}
 
-            </article>
+className="
+hover:opacity-60
+"
 
+>
 
+View →
 
-          ))}
+</Link>
 
 
 
+</div>
 
-          </div>
 
 
 
 
 
-        </section>
+</div>
 
 
 
-        )}
 
 
+</article>
 
 
+))
 
 
+}
 
 
 
+</div>
 
 
 
+</section>
 
 
-        {/* ARCHIVE */}
 
 
 
-        {!loading && archive.length > 0 && (
 
 
 
-        <section className="
-          mt-32
-        ">
 
+{
 
+archive.length > 0 && (
 
-          <h2 className="
-            text-4xl
-            font-serif
-            mb-10
-          ">
 
-            Archive
+<section className="
+mt-32
+">
 
-          </h2>
 
+<h2 className="
+text-4xl
+font-serif
+mb-10
+">
 
+Archive
 
+</h2>
 
 
 
 
-          <div className="
-            grid
-            md:grid-cols-3
-            gap-10
-          ">
 
 
+<div className="
+grid
+md:grid-cols-3
+gap-10
+">
 
 
 
+{
 
-          {archive.map((knife)=>(
+archive.map(knife=>(
 
 
+<article
 
-            <article
+key={knife.id}
 
-              key={knife.id}
+className="
+bg-white
+border
+opacity-80
+overflow-hidden
+"
 
-              className="
-                opacity-80
-                border
-                bg-white
-              "
+>
 
-            >
 
 
+<Link
 
+to={`/collection/${knife.slug}`}
 
+>
 
-              {knife.images?.[0] && (
 
+{
 
-                <img
+knife.images?.[0] && (
 
-                  src={
-                    `http://localhost:8080${knife.images[0]}`
-                  }
 
-                  alt={knife.title}
+<img
 
-                  className="
-                    w-full
-                    h-80
-                    object-cover
-                  "
+src={
+`http://localhost:8080${knife.images[0]}`
+}
 
-                />
+alt={knife.title}
 
+className="
+w-full
+h-80
+object-cover
+"
 
-              )}
+/>
 
 
+)
 
+}
 
 
+</Link>
 
 
 
 
-              <div className="
-                p-6
-              ">
 
 
 
+<div className="
+p-6
+">
 
 
-                <p className="
-                  text-xs
-                  tracking-widest
-                ">
+<p className="
+text-xs
+tracking-widest
+">
 
-                  SOLD
+SOLD
 
-                </p>
+</p>
 
 
 
 
 
+<h3 className="
+text-2xl
+font-serif
+mt-3
+">
 
-                <Link
+{knife.title}
 
-                  to={`/collection/${knife.slug}`}
+</h3>
 
-                >
 
 
-                  <h3 className="
-                    text-2xl
-                    font-serif
-                    mt-3
-                  ">
 
-                    {knife.title}
 
-                  </h3>
 
+<Link
 
-                </Link>
+to={`/makers/${knife.maker.slug}`}
 
+className="
+block
+mt-3
+"
 
+>
 
+{knife.maker.name}
 
+</Link>
 
 
 
-                <p className="
-                  mt-2
-                ">
 
-                  {knife.maker}
+</div>
 
-                </p>
 
 
 
 
 
+</article>
 
 
-              </div>
+))
 
 
+}
 
 
 
+</div>
 
 
-            </article>
 
+</section>
 
 
-          ))}
+)
 
 
+}
 
 
-          </div>
 
 
 
 
 
+</div>
 
-        </section>
 
 
 
-        )}
 
+</main>
 
+);
 
-
-
-      </div>
-
-
-
-    </main>
-
-
-  );
 
 }

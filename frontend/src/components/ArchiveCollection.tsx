@@ -1,131 +1,460 @@
-import KnifeCard from "./KnifeCard";
+import { Router } from "express";
+import multer from "multer";
+import { prisma } from "../prisma";
+
+const router = Router();
 
 
-interface Knife {
+// ==========================
+// SLUG HELPER
+// ==========================
 
-  id:string;
+function createSlug(title: string) {
 
-  title:string;
-
-  maker:string;
-
-  steel?:string;
-
-  description:string;
-
-  price:number;
-
-  image:string;
-
-  status:string;
+  return title
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 
 }
 
 
 
+// ==========================
+// IMAGE STORAGE
+// ==========================
 
-export default function ArchiveCollection(
+const storage = multer.diskStorage({
+
+  destination: (_req,_file,cb)=>{
+
+    cb(null,"uploads/");
+
+  },
+
+  filename: (_req,file,cb)=>{
+
+    const uniqueName =
+      Date.now()
+      +
+      "-"
+      +
+      file.originalname.replace(/\s+/g,"-");
+
+    cb(
+      null,
+      uniqueName
+    );
+
+  }
+
+});
+
+const upload = multer({
+  storage
+});
+
+
+
+
+// ==========================
+// GET ALL KNIVES
+// ==========================
+
+router.get("/", async(_req,res)=>{
+
+try{
+
+const knives =
+await prisma.knife.findMany({
+
+orderBy:{
+
+createdAt:"desc"
+
+}
+
+});
+
+res.json(knives);
+
+}catch(error){
+
+console.error(
+"FETCH KNIVES ERROR:",
+error
+);
+
+res.status(500).json({
+
+error:"Failed fetching knives"
+
+});
+
+}
+
+});
+
+
+
+
+// ==========================
+// GET SINGLE KNIFE
+// ==========================
+
+router.get("/:id", async(req,res)=>{
+
+try{
+
+const knife =
+await prisma.knife.findFirst({
+
+where:{
+
+OR:[
+
 {
-knives
-}:{
-knives:Knife[]
+id:req.params.id
+},
+
+{
+slug:req.params.id
 }
 
-){
+]
+
+}
+
+});
+
+if(!knife){
+
+return res.status(404).json({
+
+error:"Knife not found"
+
+});
+
+}
+
+res.json(knife);
+
+}catch(error){
+
+console.error(
+"GET KNIFE ERROR:",
+error
+);
+
+res.status(500).json({
+
+error:"Failed loading knife"
+
+});
+
+}
+
+});
 
 
-const archive =
-knives.filter(
-knife =>
-knife.status === "sold" ||
-knife.status === "archive"
+
+
+// ==========================
+// CREATE KNIFE
+// ==========================
+
+router.post(
+
+"/",
+
+upload.array(
+"images",
+10
+),
+
+async(req,res)=>{
+
+try{
+
+const files =
+req.files as Express.Multer.File[];
+
+const imagePaths =
+files?.map(
+
+file =>
+`/uploads/${file.filename}`
+
+)
+||
+[];
+
+const knife =
+await prisma.knife.create({
+
+data:{
+
+title:
+req.body.title,
+
+slug:
+createSlug(req.body.title),
+
+maker:
+req.body.maker,
+
+origin:
+req.body.origin || null,
+
+steel:
+req.body.steel || null,
+
+bladeType:
+req.body.bladeType || null,
+
+length:
+req.body.length || null,
+
+handle:
+req.body.handle || null,
+
+weight:
+req.body.weight
+?
+Number(req.body.weight)
+:
+null,
+
+description:
+req.body.description || null,
+
+price:
+Number(req.body.price),
+
+status:
+req.body.status || "available",
+
+images:
+imagePaths
+
+}
+
+});
+
+res.json(knife);
+
+}catch(error){
+
+console.error(
+"CREATE KNIFE ERROR:",
+error
+);
+
+res.status(500).json({
+
+error:"Failed creating knife"
+
+});
+
+}
+
+}
+
 );
 
 
 
 
-return (
+// ==========================
+// UPDATE KNIFE
+// ==========================
 
-<section
-className="
-bg-black
-text-white
-px-6
-py-24
-"
->
+router.put("/:id", async(req,res)=>{
 
+try{
 
+const knife =
+await prisma.knife.update({
 
-<div className="
-max-w-7xl
-mx-auto
-">
+where:{
 
+id:req.params.id
 
+},
 
-<p className="
-uppercase
-text-xs
-tracking-[0.4em]
-opacity-60
-mb-4
-">
+data:{
 
-Archive
+title:
+req.body.title,
 
-</p>
+slug:
+createSlug(req.body.title),
 
+maker:
+req.body.maker,
 
+origin:
+req.body.origin || null,
 
+steel:
+req.body.steel || null,
 
-<h2 className="
-text-5xl
-font-serif
-mb-14
-">
+bladeType:
+req.body.bladeType || null,
 
-Previous Pieces
+length:
+req.body.length || null,
 
-</h2>
+handle:
+req.body.handle || null,
 
+weight:
+req.body.weight
+?
+Number(req.body.weight)
+:
+null,
 
+description:
+req.body.description || null,
 
+price:
+Number(req.body.price),
 
-
-<div className="
-grid
-md:grid-cols-3
-gap-10
-">
-
-
-{archive.map((knife)=>(
-
-
-<KnifeCard
-
-key={knife.id}
-
-knife={knife}
-
-/>
-
-
-))}
-
-
-
-</div>
-
-
-</div>
-
-
-</section>
-
-
-);
-
+status:
+req.body.status || "available"
 
 }
+
+});
+
+res.json(knife);
+
+}catch(error){
+
+console.error(
+"UPDATE KNIFE ERROR:",
+error
+);
+
+res.status(500).json({
+
+error:"Failed updating knife"
+
+});
+
+}
+
+});
+
+
+
+
+// ==========================
+// DELETE KNIFE
+// ==========================
+
+router.delete("/:id", async(req,res)=>{
+
+try{
+
+await prisma.knife.delete({
+
+where:{
+
+id:req.params.id
+
+}
+
+});
+
+res.json({
+
+message:"Knife deleted"
+
+});
+
+}catch(error){
+
+console.error(
+"DELETE KNIFE ERROR:",
+error
+);
+
+res.status(500).json({
+
+error:"Failed deleting knife"
+
+});
+
+}
+
+});
+
+
+
+
+// ==========================
+// GET MAKER PROFILE
+// ==========================
+
+router.get("/maker/:maker", async(req,res)=>{
+
+try{
+
+const maker =
+decodeURIComponent(
+req.params.maker
+);
+
+const knives =
+await prisma.knife.findMany({
+
+where:{
+
+maker:maker
+
+}
+
+});
+
+const collaborations =
+await prisma.collaboration.findMany({
+
+where:{
+
+maker:maker
+
+}
+
+});
+
+res.json({
+
+maker,
+
+knives,
+
+collaborations
+
+});
+
+}catch(error){
+
+console.error(
+"MAKER PROFILE ERROR:",
+error
+);
+
+res.status(500).json({
+
+error:"Failed loading maker"
+
+});
+
+}
+
+});
+
+export default router;

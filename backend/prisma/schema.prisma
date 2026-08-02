@@ -7,15 +7,40 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Knife {
+model Maker {
+  id String @id @default(uuid())
 
+  name String
+
+  slug String @unique
+
+  country String?
+
+  bio String?
+
+  image String?
+
+  website String?
+
+  instagram String?
+
+  knives Knife[]
+
+  collaborations Collaboration[]
+
+  createdAt DateTime @default(now())
+}
+
+model Knife {
   id String @id @default(uuid())
 
   title String
 
   slug String @unique
 
-  maker String
+  makerId String?
+
+  maker Maker? @relation(fields: [makerId], references: [id])
 
   origin String?
 
@@ -38,12 +63,14 @@ model Knife {
   status String @default("available")
 
   createdAt DateTime @default(now())
-
 }
+
 model Collaboration {
   id String @id @default(uuid())
 
-  maker String
+  makerId String?
+
+  maker Maker? @relation(fields: [makerId], references: [id])
 
   title String
 
