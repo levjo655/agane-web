@@ -16,6 +16,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 
 import NewKnife from "./pages/NewKnife";
 import EditKnife from "./pages/EditKnife";
+import EditMaker from "./pages/EditMaker";
 
 import NewCollaboration from "./pages/NewCollaboration";
 import EditCollaboration from "./pages/EditCollaboration";
@@ -139,6 +140,14 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+  path="/admin/maker/:id/edit"
+  element={
+    <ProtectedRoute>
+      <EditMaker />
+    </ProtectedRoute>
+  }
+/>
 
         <Route
           path="/admin/knife/:id/edit"

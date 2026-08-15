@@ -207,6 +207,101 @@ export default function Admin() {
 
 
   // ==========================
+  // DELETE MAKER
+  // ==========================
+
+  async function deleteMaker(
+    id: string
+  ) {
+
+
+    if (
+      !confirm(
+        "Delete this maker?"
+      )
+    ) {
+
+      return;
+
+    }
+
+
+    try {
+
+      const response =
+        await fetch(
+
+          `http://localhost:8080/api/makers/${id}`,
+
+          {
+            method: "DELETE"
+          }
+
+        );
+
+
+      if (!response.ok) {
+
+        let message =
+          "Failed deleting maker";
+
+
+        try {
+
+          const data =
+            await response.json();
+
+
+          if (data.error) {
+
+            message =
+              data.error;
+
+          }
+
+        } catch {
+
+          // Ignore JSON parsing error
+
+        }
+
+
+        throw new Error(
+          message
+        );
+
+      }
+
+
+      setMakers(prev =>
+
+        prev.filter(
+          maker =>
+            maker.id !== id
+        )
+
+      );
+
+
+    } catch (error) {
+
+      console.error(
+        "DELETE MAKER ERROR",
+        error
+      );
+
+
+      alert(
+        "Failed deleting maker. The maker may still have knives or collaborations attached."
+      );
+
+    }
+
+  }
+
+
+
+  // ==========================
   // DELETE KNIFE
   // ==========================
 
@@ -405,6 +500,9 @@ export default function Admin() {
               border
               px-6
               py-3
+              hover:bg-black
+              hover:text-white
+              transition
             "
           >
 
@@ -471,6 +569,9 @@ export default function Admin() {
                 border
                 px-6
                 py-3
+                hover:bg-black
+                hover:text-white
+                transition
               "
             >
 
@@ -517,7 +618,7 @@ export default function Admin() {
 
                     {/* MAKER IMAGE */}
 
-                    {maker.image && (
+                    {maker.image ? (
 
                       <img
                         src={
@@ -534,9 +635,28 @@ export default function Admin() {
                         "
                       />
 
+                    ) : (
+
+                      <div className="
+                        h-56
+                        w-full
+                        bg-agane-bg
+                        flex
+                        items-center
+                        justify-center
+                        mb-6
+                        opacity-50
+                      ">
+
+                        No image
+
+                      </div>
+
                     )}
 
 
+
+                    {/* MAKER NAME */}
 
                     <h3 className="
                       text-3xl
@@ -548,6 +668,8 @@ export default function Admin() {
                     </h3>
 
 
+
+                    {/* COUNTRY */}
 
                     {maker.country && (
 
@@ -564,6 +686,8 @@ export default function Admin() {
 
 
 
+                    {/* BIO */}
+
                     {maker.bio && (
 
                       <p className="
@@ -576,6 +700,65 @@ export default function Admin() {
                       </p>
 
                     )}
+
+
+
+                    {/* ACTIONS */}
+
+                    <div className="
+                      mt-6
+                      flex
+                      gap-3
+                    ">
+
+
+                      <button
+                        onClick={() =>
+                          navigate(
+                            `/admin/maker/${maker.id}/edit`
+                          )
+                        }
+                        className="
+                          border
+                          px-4
+                          py-2
+                          hover:bg-black
+                          hover:text-white
+                          transition
+                        "
+                      >
+
+                        Edit
+
+                      </button>
+
+
+
+                      <button
+                        onClick={() =>
+                          deleteMaker(
+                            maker.id
+                          )
+                        }
+                        className="
+                          border
+                          border-red-600
+                          text-red-600
+                          px-4
+                          py-2
+                          hover:bg-red-600
+                          hover:text-white
+                          transition
+                        "
+                      >
+
+                        Delete
+
+                      </button>
+
+
+                    </div>
+
 
                   </article>
 
@@ -628,6 +811,9 @@ export default function Admin() {
                 border
                 px-6
                 py-3
+                hover:bg-black
+                hover:text-white
+                transition
               "
             >
 
@@ -694,6 +880,8 @@ export default function Admin() {
 
 
 
+                    {/* KNIFE TITLE */}
+
                     <h3 className="
                       text-2xl
                       font-serif
@@ -705,6 +893,8 @@ export default function Admin() {
                     </h3>
 
 
+
+                    {/* MAKER */}
 
                     <p className="
                       mt-2
@@ -719,6 +909,8 @@ export default function Admin() {
 
 
 
+                    {/* PRICE */}
+
                     <p className="
                       mt-1
                     ">
@@ -728,6 +920,8 @@ export default function Admin() {
                     </p>
 
 
+
+                    {/* STATUS */}
 
                     <p className="
                       mt-1
@@ -760,6 +954,9 @@ export default function Admin() {
                           border
                           px-4
                           py-2
+                          hover:bg-black
+                          hover:text-white
+                          transition
                         "
                       >
 
@@ -781,6 +978,9 @@ export default function Admin() {
                           text-red-600
                           px-4
                           py-2
+                          hover:bg-red-600
+                          hover:text-white
+                          transition
                         "
                       >
 
@@ -843,6 +1043,9 @@ export default function Admin() {
                 border
                 px-6
                 py-3
+                hover:bg-black
+                hover:text-white
+                transition
               "
             >
 
@@ -910,6 +1113,8 @@ export default function Admin() {
 
 
 
+                    {/* COLLAB TITLE */}
+
                     <h3 className="
                       text-3xl
                       font-serif
@@ -920,6 +1125,8 @@ export default function Admin() {
                     </h3>
 
 
+
+                    {/* MAKER */}
 
                     <p className="
                       mt-3
@@ -934,6 +1141,8 @@ export default function Admin() {
 
 
 
+                    {/* QUANTITY */}
+
                     <p className="
                       mt-2
                     ">
@@ -946,6 +1155,8 @@ export default function Admin() {
 
 
 
+                    {/* STATUS */}
+
                     <p className="
                       mt-2
                       opacity-60
@@ -957,6 +1168,8 @@ export default function Admin() {
                     </p>
 
 
+
+                    {/* RELEASE DATE */}
 
                     {collab.releaseDate && (
 
@@ -996,6 +1209,9 @@ export default function Admin() {
                           border
                           px-4
                           py-2
+                          hover:bg-black
+                          hover:text-white
+                          transition
                         "
                       >
 
@@ -1017,6 +1233,9 @@ export default function Admin() {
                           text-red-600
                           px-4
                           py-2
+                          hover:bg-red-600
+                          hover:text-white
+                          transition
                         "
                       >
 

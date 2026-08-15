@@ -38,6 +38,10 @@ type Knife = {
 
   title: string;
 
+  price: number;
+
+  status: string;
+
   origin?: string;
 
   steel?: string;
@@ -50,13 +54,9 @@ type Knife = {
 
   weight?: number;
 
-  price: number;
-
   description?: string;
 
   images: string[];
-
-  status: string;
 
   maker?: Maker;
 
@@ -92,12 +92,9 @@ export default function KnifeDetail() {
 
   useEffect(() => {
 
-
     async function loadKnife() {
 
-
       try {
-
 
         const response =
           await fetch(
@@ -120,9 +117,7 @@ export default function KnifeDetail() {
 
         setKnife(data);
 
-
       } catch (error) {
-
 
         console.error(
           "KNIFE DETAIL ERROR",
@@ -134,9 +129,7 @@ export default function KnifeDetail() {
           "Failed loading knife"
         );
 
-
       } finally {
-
 
         setLoading(false);
 
@@ -150,7 +143,6 @@ export default function KnifeDetail() {
       loadKnife();
 
     }
-
 
   }, [slug]);
 
@@ -166,10 +158,10 @@ export default function KnifeDetail() {
       <main className="
         min-h-screen
         bg-agane-bg
-        text-agane-text
         flex
         items-center
         justify-center
+        text-agane-text
       ">
 
         Loading knife...
@@ -203,24 +195,27 @@ export default function KnifeDetail() {
           text-center
         ">
 
+          <p className="
+            text-xs
+            uppercase
+            tracking-[0.3em]
+            opacity-50
+          ">
+
+            Ågane
+
+          </p>
+
+
           <h1 className="
             text-5xl
             font-serif
+            mt-5
           ">
 
             Knife not found
 
           </h1>
-
-
-          <p className="
-            mt-5
-            opacity-60
-          ">
-
-            We couldn't find the knife you're looking for.
-
-          </p>
 
 
           <Link
@@ -251,16 +246,6 @@ export default function KnifeDetail() {
   }
 
 
-  const images =
-    Array.isArray(knife.images)
-      ? knife.images
-      : [];
-
-
-  const currentImage =
-    images[activeImage];
-
-
   return (
 
     <main className="
@@ -279,7 +264,7 @@ export default function KnifeDetail() {
 
 
         {/* ==========================
-            BACK
+            BACK TO SHOP
         ========================== */}
 
         <Link
@@ -300,7 +285,7 @@ export default function KnifeDetail() {
 
 
         {/* ==========================
-            PRODUCT
+            KNIFE HERO
         ========================== */}
 
         <section className="
@@ -318,19 +303,20 @@ export default function KnifeDetail() {
           <div>
 
 
+            {/* MAIN IMAGE */}
+
             <div className="
               bg-white
               border
               overflow-hidden
             ">
 
-
-              {currentImage ? (
+              {knife.images?.length > 0 ? (
 
                 <img
-                  src={
-                    `http://localhost:8080${currentImage}`
-                  }
+                  src={`
+                    http://localhost:8080${knife.images[activeImage]}
+                  `}
                   alt={knife.title}
                   className="
                     w-full
@@ -347,37 +333,35 @@ export default function KnifeDetail() {
                   flex
                   items-center
                   justify-center
-                  bg-agane-bg
-                  opacity-50
+                  opacity-30
                 ">
 
-                  No image
+                  No Image
 
                 </div>
 
               )}
-
 
             </div>
 
 
             {/* THUMBNAILS */}
 
-            {images.length > 1 && (
+            {knife.images &&
+              knife.images.length > 1 && (
 
               <div className="
                 grid
-                grid-cols-5
-                gap-3
+                grid-cols-4
+                gap-4
                 mt-4
               ">
 
-
-                {images.map(
+                {knife.images.map(
                   (image, index) => (
 
                     <button
-                      key={image + index}
+                      key={image}
                       type="button"
                       onClick={() =>
                         setActiveImage(index)
@@ -385,23 +369,23 @@ export default function KnifeDetail() {
                       className={`
                         border
                         overflow-hidden
+                        transition
                         ${
                           activeImage === index
-                            ? "ring-2 ring-black"
-                            : "opacity-60 hover:opacity-100"
+                            ? "border-black"
+                            : "opacity-50 hover:opacity-100"
                         }
-                        transition
                       `}
                     >
 
                       <img
-                        src={
-                          `http://localhost:8080${image}`
-                        }
+                        src={`
+                          http://localhost:8080${image}
+                        `}
                         alt={`${knife.title} ${index + 1}`}
                         className="
                           w-full
-                          h-24
+                          h-28
                           object-cover
                         "
                       />
@@ -411,11 +395,9 @@ export default function KnifeDetail() {
                   )
                 )}
 
-
               </div>
 
             )}
-
 
           </div>
 
@@ -427,8 +409,6 @@ export default function KnifeDetail() {
           <div>
 
 
-            {/* STATUS */}
-
             <p className="
               text-xs
               uppercase
@@ -436,12 +416,10 @@ export default function KnifeDetail() {
               opacity-50
             ">
 
-              {knife.status}
+              Knife
 
             </p>
 
-
-            {/* TITLE */}
 
             <h1 className="
               text-6xl
@@ -459,36 +437,78 @@ export default function KnifeDetail() {
 
             {knife.maker && (
 
-              <Link
-                to={`/makers/${knife.maker.slug}`}
-                className="
-                  inline-block
-                  mt-5
-                  text-lg
-                  opacity-60
-                  hover:opacity-100
-                  transition
-                "
-              >
+              <div className="
+                mt-6
+              ">
 
-                By {knife.maker.name} →
+                <p className="
+                  text-xs
+                  uppercase
+                  tracking-[0.25em]
+                  opacity-40
+                ">
 
-              </Link>
+                  Made by
+
+                </p>
+
+
+                <Link
+                  to={`/makers/${knife.maker.slug}`}
+                  className="
+                    inline-block
+                    mt-2
+                    text-xl
+                    font-serif
+                    hover:opacity-50
+                    transition
+                  "
+                >
+
+                  {knife.maker.name} →
+
+                </Link>
+
+              </div>
 
             )}
 
 
-            {/* PRICE */}
+            {/* PRICE / STATUS */}
 
             <div className="
               mt-10
-              text-2xl
+              border-y
+              py-6
+              flex
+              justify-between
+              items-center
             ">
 
-              {knife.status === "available"
-                ? `${knife.price} SEK`
-                : "SOLD"
-              }
+
+              <span className="
+                text-2xl
+              ">
+
+                {knife.status === "available"
+                  ? `${knife.price} SEK`
+                  : knife.status.toUpperCase()
+                }
+
+              </span>
+
+
+              <span className="
+                text-xs
+                uppercase
+                tracking-[0.25em]
+                opacity-50
+              ">
+
+                {knife.status}
+
+              </span>
+
 
             </div>
 
@@ -499,14 +519,12 @@ export default function KnifeDetail() {
 
               <div className="
                 mt-10
-                max-w-xl
               ">
 
                 <p className="
                   leading-relaxed
                   text-lg
-                  opacity-75
-                  whitespace-pre-line
+                  opacity-80
                 ">
 
                   {knife.description}
@@ -518,7 +536,9 @@ export default function KnifeDetail() {
             )}
 
 
-            {/* SPECS */}
+            {/* ==========================
+                SPECS
+            ========================== */}
 
             <div className="
               mt-12
@@ -526,315 +546,182 @@ export default function KnifeDetail() {
             ">
 
 
-              <h2 className="
+              <p className="
                 text-xs
                 uppercase
                 tracking-[0.3em]
                 opacity-50
-                mt-8
-                mb-6
+                py-5
               ">
 
                 Specifications
 
-              </h2>
+              </p>
 
 
-              <div className="
-                divide-y
-                border-b
-              ">
+              {knife.steel && (
 
+                <div className="
+                  flex
+                  justify-between
+                  border-t
+                  py-4
+                ">
 
-                {knife.steel && (
+                  <span className="opacity-50">
+                    Steel
+                  </span>
 
-                  <div className="
-                    py-4
-                    flex
-                    justify-between
-                    gap-8
-                  ">
+                  <span>
+                    {knife.steel}
+                  </span>
 
-                    <span className="
-                      opacity-50
-                    ">
+                </div>
 
-                      Steel
+              )}
 
-                    </span>
 
-                    <span>
+              {knife.origin && (
 
-                      {knife.steel}
+                <div className="
+                  flex
+                  justify-between
+                  border-t
+                  py-4
+                ">
 
-                    </span>
+                  <span className="opacity-50">
+                    Origin
+                  </span>
 
-                  </div>
+                  <span>
+                    {knife.origin}
+                  </span>
 
-                )}
+                </div>
 
+              )}
 
-                {knife.origin && (
 
-                  <div className="
-                    py-4
-                    flex
-                    justify-between
-                    gap-8
-                  ">
+              {knife.bladeType && (
 
-                    <span className="
-                      opacity-50
-                    ">
+                <div className="
+                  flex
+                  justify-between
+                  border-t
+                  py-4
+                ">
 
-                      Origin
+                  <span className="opacity-50">
+                    Blade
+                  </span>
 
-                    </span>
+                  <span>
+                    {knife.bladeType}
+                  </span>
 
-                    <span>
+                </div>
 
-                      {knife.origin}
+              )}
 
-                    </span>
 
-                  </div>
+              {knife.length && (
 
-                )}
+                <div className="
+                  flex
+                  justify-between
+                  border-t
+                  py-4
+                ">
 
+                  <span className="opacity-50">
+                    Length
+                  </span>
 
-                {knife.bladeType && (
+                  <span>
+                    {knife.length}
+                  </span>
 
-                  <div className="
-                    py-4
-                    flex
-                    justify-between
-                    gap-8
-                  ">
+                </div>
 
-                    <span className="
-                      opacity-50
-                    ">
+              )}
 
-                      Blade Type
 
-                    </span>
+              {knife.handle && (
 
-                    <span>
+                <div className="
+                  flex
+                  justify-between
+                  border-t
+                  py-4
+                ">
 
-                      {knife.bladeType}
+                  <span className="opacity-50">
+                    Handle
+                  </span>
 
-                    </span>
+                  <span>
+                    {knife.handle}
+                  </span>
 
-                  </div>
+                </div>
 
-                )}
+              )}
 
 
-                {knife.length && (
+              {knife.weight !== undefined &&
+                knife.weight !== null && (
 
-                  <div className="
-                    py-4
-                    flex
-                    justify-between
-                    gap-8
-                  ">
+                <div className="
+                  flex
+                  justify-between
+                  border-t
+                  py-4
+                ">
 
-                    <span className="
-                      opacity-50
-                    ">
+                  <span className="opacity-50">
+                    Weight
+                  </span>
 
-                      Length
+                  <span>
+                    {knife.weight} g
+                  </span>
 
-                    </span>
+                </div>
 
-                    <span>
-
-                      {knife.length}
-
-                    </span>
-
-                  </div>
-
-                )}
-
-
-                {knife.handle && (
-
-                  <div className="
-                    py-4
-                    flex
-                    justify-between
-                    gap-8
-                  ">
-
-                    <span className="
-                      opacity-50
-                    ">
-
-                      Handle
-
-                    </span>
-
-                    <span>
-
-                      {knife.handle}
-
-                    </span>
-
-                  </div>
-
-                )}
-
-
-                {knife.weight !== undefined &&
-                  knife.weight !== null && (
-
-                    <div className="
-                      py-4
-                      flex
-                      justify-between
-                      gap-8
-                    ">
-
-                      <span className="
-                        opacity-50
-                      ">
-
-                        Weight
-
-                      </span>
-
-                      <span>
-
-                        {knife.weight} g
-
-                      </span>
-
-                    </div>
-
-                  )}
-
-
-              </div>
-
+              )}
 
             </div>
 
 
-            {/* MAKER CARD */}
+            {/* ==========================
+                PURCHASE
+            ========================== */}
 
-            {knife.maker && (
+            {knife.status === "available" && (
 
               <div className="
-                mt-12
-                border
-                bg-white
-                p-8
+                mt-10
               ">
 
+                <button
+                  type="button"
+                  className="
+                    w-full
+                    bg-black
+                    text-white
+                    py-5
+                    uppercase
+                    tracking-[0.25em]
+                    text-sm
+                    hover:opacity-80
+                    transition
+                  "
+                >
 
-                <p className="
-                  text-xs
-                  uppercase
-                  tracking-[0.3em]
-                  opacity-50
-                ">
+                  Inquire About This Knife
 
-                  The Maker
-
-                </p>
-
-
-                <div className="
-                  flex
-                  items-center
-                  gap-6
-                  mt-6
-                ">
-
-
-                  {knife.maker.image ? (
-
-                    <img
-                      src={
-                        `http://localhost:8080${knife.maker.image}`
-                      }
-                      alt={knife.maker.name}
-                      className="
-                        w-24
-                        h-24
-                        object-cover
-                        border
-                      "
-                    />
-
-                  ) : (
-
-                    <div className="
-                      w-24
-                      h-24
-                      border
-                      flex
-                      items-center
-                      justify-center
-                      opacity-30
-                    ">
-
-                      No Image
-
-                    </div>
-
-                  )}
-
-
-                  <div>
-
-
-                    <h3 className="
-                      text-2xl
-                      font-serif
-                    ">
-
-                      {knife.maker.name}
-
-                    </h3>
-
-
-                    {knife.maker.country && (
-
-                      <p className="
-                        mt-2
-                        opacity-60
-                      ">
-
-                        {knife.maker.country}
-
-                      </p>
-
-                    )}
-
-
-                    <Link
-                      to={`/makers/${knife.maker.slug}`}
-                      className="
-                        inline-block
-                        mt-4
-                        text-sm
-                        hover:opacity-50
-                        transition
-                      "
-                    >
-
-                      View Maker →
-
-                    </Link>
-
-
-                  </div>
-
-
-                </div>
-
+                </button>
 
               </div>
 
@@ -845,6 +732,158 @@ export default function KnifeDetail() {
 
 
         </section>
+
+
+        {/* ==========================
+            MAKER SECTION
+        ========================== */}
+
+        {knife.maker && (
+
+          <section className="
+            mt-32
+            border-t
+            pt-20
+          ">
+
+
+            <div className="
+              grid
+              lg:grid-cols-2
+              gap-16
+              items-center
+            ">
+
+
+              {/* MAKER IMAGE */}
+
+              {knife.maker.image ? (
+
+                <div className="
+                  bg-white
+                  border
+                  overflow-hidden
+                ">
+
+                  <img
+                    src={`
+                      http://localhost:8080${knife.maker.image}
+                    `}
+                    alt={knife.maker.name}
+                    className="
+                      w-full
+                      h-[500px]
+                      object-cover
+                    "
+                  />
+
+                </div>
+
+              ) : (
+
+                <div className="
+                  bg-white
+                  border
+                  h-[500px]
+                  flex
+                  items-center
+                  justify-center
+                  opacity-30
+                ">
+
+                  No Maker Image
+
+                </div>
+
+              )}
+
+
+              {/* MAKER INFO */}
+
+              <div>
+
+
+                <p className="
+                  text-xs
+                  uppercase
+                  tracking-[0.35em]
+                  opacity-50
+                ">
+
+                  The Maker
+
+                </p>
+
+
+                <h2 className="
+                  text-5xl
+                  font-serif
+                  mt-5
+                ">
+
+                  {knife.maker.name}
+
+                </h2>
+
+
+                {knife.maker.country && (
+
+                  <p className="
+                    mt-4
+                    opacity-60
+                  ">
+
+                    {knife.maker.country}
+
+                  </p>
+
+                )}
+
+
+                {knife.maker.bio && (
+
+                  <p className="
+                    mt-8
+                    leading-relaxed
+                    text-lg
+                    opacity-75
+                  ">
+
+                    {knife.maker.bio}
+
+                  </p>
+
+                )}
+
+
+                <Link
+                  to={`/makers/${knife.maker.slug}`}
+                  className="
+                    inline-block
+                    mt-8
+                    border
+                    px-7
+                    py-3
+                    hover:bg-black
+                    hover:text-white
+                    transition
+                  "
+                >
+
+                  View Maker →
+
+                </Link>
+
+
+              </div>
+
+
+            </div>
+
+
+          </section>
+
+        )}
 
 
       </div>
