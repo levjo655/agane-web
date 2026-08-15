@@ -66,11 +66,11 @@ export default function Shop() {
   }
 
   const available = knives.filter(
-    knife => knife.status === "available"
+    (knife) => knife.status === "available"
   );
 
   const archive = knives.filter(
-    knife => knife.status !== "available"
+    (knife) => knife.status !== "available"
   );
 
   return (
@@ -85,7 +85,9 @@ export default function Shop() {
     >
       <div className="max-w-7xl mx-auto">
 
-        {/* HEADER */}
+        {/* ==========================
+            HEADER
+        ========================== */}
 
         <header className="mb-20">
 
@@ -120,14 +122,16 @@ export default function Shop() {
               opacity-70
             "
           >
-            Handcrafted knives created in collaboration
-            with exceptional makers.
+            Handcrafted knives, sharpening stones and
+            selected tools for the pursuit of exceptional edges.
           </p>
 
         </header>
 
 
-        {/* AVAILABLE */}
+        {/* ==========================
+            AVAILABLE KNIVES
+        ========================== */}
 
         <section>
 
@@ -183,7 +187,7 @@ export default function Shop() {
               "
             >
 
-              {available.map(knife => (
+              {available.map((knife) => (
 
                 <Link
                   key={knife.id}
@@ -249,7 +253,7 @@ export default function Shop() {
                         opacity-60
                       "
                     >
-                      {knife.maker.name}
+                      {knife.maker?.name}
                     </p>
 
                     <h3
@@ -324,7 +328,9 @@ export default function Shop() {
         </section>
 
 
-        {/* ARCHIVE */}
+        {/* ==========================
+            ARCHIVE
+        ========================== */}
 
         {archive.length > 0 && (
 
@@ -380,7 +386,7 @@ export default function Shop() {
               "
             >
 
-              {archive.map(knife => (
+              {archive.map((knife) => (
 
                 <Link
                   key={knife.id}
@@ -455,7 +461,7 @@ export default function Shop() {
                     </h3>
 
                     <p className="mt-3 opacity-60">
-                      {knife.maker.name}
+                      {knife.maker?.name}
                     </p>
 
                   </div>
@@ -469,6 +475,351 @@ export default function Shop() {
           </section>
 
         )}
+
+
+        {/* ==========================
+            SHARPENING & STONES
+        ========================== */}
+
+        <section className="mt-32">
+
+          <div className="mb-10">
+
+            <p
+              className="
+                text-xs
+                uppercase
+                tracking-[0.3em]
+                opacity-50
+                mb-3
+              "
+            >
+              Ågane Sharpening
+            </p>
+
+            <h2
+              className="
+                text-4xl
+                md:text-5xl
+                font-serif
+              "
+            >
+              Stones & Sharpening
+            </h2>
+
+            <p
+              className="
+                mt-5
+                max-w-2xl
+                opacity-70
+                leading-relaxed
+              "
+            >
+              Selected sharpening stones and professional
+              sharpening services for those who take their
+              edges seriously.
+            </p>
+
+          </div>
+
+
+          {/* STONE PRODUCTS */}
+
+          <div
+            className="
+              grid
+              md:grid-cols-2
+              gap-10
+            "
+          >
+
+            {/* DIAMOND STONE */}
+
+            <article
+              className="
+                bg-white
+                border
+                overflow-hidden
+                group
+              "
+            >
+
+              <div
+                className="
+                  overflow-hidden
+                  bg-agane-bg
+                "
+              >
+
+                <img
+                  src="/knives/diamond-stone.jpg"
+                  alt="Diamond sharpening stone"
+                  className="
+                    w-full
+                    h-[450px]
+                    object-cover
+                    group-hover:scale-105
+                    transition
+                    duration-700
+                  "
+                />
+
+              </div>
+
+
+              <div className="p-8">
+
+                <p
+                  className="
+                    text-xs
+                    uppercase
+                    tracking-[0.3em]
+                    opacity-50
+                  "
+                >
+                  Sharpening Stone
+                </p>
+
+                <h3
+                  className="
+                    text-3xl
+                    font-serif
+                    mt-4
+                  "
+                >
+                  Diamond Stone
+                </h3>
+
+                <p
+                  className="
+                    mt-5
+                    leading-relaxed
+                    opacity-70
+                  "
+                >
+                  Professional diamond sharpening stone selected
+                  for precision sharpening, repair and maintenance
+                  of high-end kitchen knives.
+                </p>
+
+
+                <div
+                  className="
+                    mt-8
+                    border-t
+                    pt-5
+                    flex
+                    justify-between
+                    items-center
+                  "
+                >
+
+                  <span>
+                    Coming soon
+                  </span>
+
+                  <a
+                    href="mailto:hello@agane.se"
+                    className="
+                      text-sm
+                      uppercase
+                      tracking-widest
+                      hover:opacity-50
+                      transition
+                    "
+                  >
+                    Enquire →
+                  </a>
+
+                </div>
+
+              </div>
+
+            </article>
+
+
+            {/* JAPANESE NATURAL STONES */}
+
+            <article
+              className="
+                bg-white
+                border
+                overflow-hidden
+                group
+              "
+            >
+
+              <div
+                className="
+                  overflow-hidden
+                  bg-agane-bg
+                "
+              >
+
+                <img
+                  src="/knives/japanese-natural-stone.jpg"
+                  alt="Japanese natural sharpening stone"
+                  className="
+                    w-full
+                    h-[450px]
+                    object-cover
+                    group-hover:scale-105
+                    transition
+                    duration-700
+                  "
+                />
+
+              </div>
+
+
+              <div className="p-8">
+
+                <p
+                  className="
+                    text-xs
+                    uppercase
+                    tracking-[0.3em]
+                    opacity-50
+                  "
+                >
+                  Japanese Natural Stones
+                </p>
+
+                <h3
+                  className="
+                    text-3xl
+                    font-serif
+                    mt-4
+                  "
+                >
+                  Natural Stones
+                </h3>
+
+                <p
+                  className="
+                    mt-5
+                    leading-relaxed
+                    opacity-70
+                  "
+                >
+                  Carefully selected Japanese natural stones for
+                  finishing and refining the edge of exceptional
+                  handmade knives.
+                </p>
+
+
+                <div
+                  className="
+                    mt-8
+                    border-t
+                    pt-5
+                    flex
+                    justify-between
+                    items-center
+                  "
+                >
+
+                  <span>
+                    Selected pieces
+                  </span>
+
+                  <a
+                    href="mailto:hello@agane.se"
+                    className="
+                      text-sm
+                      uppercase
+                      tracking-widest
+                      hover:opacity-50
+                      transition
+                    "
+                  >
+                    Enquire →
+                  </a>
+
+                </div>
+
+              </div>
+
+            </article>
+
+          </div>
+
+
+          {/* SHARPENING SERVICE */}
+
+          <div
+            className="
+              mt-10
+              border
+              p-10
+              md:p-14
+              flex
+              flex-col
+              md:flex-row
+              md:items-center
+              justify-between
+              gap-8
+            "
+          >
+
+            <div>
+
+              <p
+                className="
+                  text-xs
+                  uppercase
+                  tracking-[0.3em]
+                  opacity-50
+                "
+              >
+                Professional service
+              </p>
+
+              <h3
+                className="
+                  text-3xl
+                  font-serif
+                  mt-3
+              "
+              >
+                Knife Sharpening & Refinement
+              </h3>
+
+              <p
+                className="
+                  mt-4
+                  opacity-70
+                  max-w-2xl
+                "
+              >
+                Professional stone sharpening, polishing and
+                edge refinement for handmade kitchen knives.
+              </p>
+
+            </div>
+
+
+            <a
+              href="mailto:hello@agane.se"
+              className="
+                border
+                px-8
+                py-4
+                text-sm
+                uppercase
+                tracking-widest
+                whitespace-nowrap
+                hover:bg-black
+                hover:text-white
+                transition
+              "
+            >
+              Enquire →
+            </a>
+
+          </div>
+
+        </section>
 
       </div>
     </main>

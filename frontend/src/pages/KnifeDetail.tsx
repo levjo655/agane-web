@@ -38,53 +38,40 @@ type Knife = {
 
   title: string;
 
-  price: number;
-
-  status: string;
+  origin?: string;
 
   steel?: string;
 
-  images: string[];
+  bladeType?: string;
 
-};
+  length?: string;
 
+  handle?: string;
 
-type Collaboration = {
+  weight?: number;
 
-  id: string;
-
-  title: string;
-
-  quantity: number;
-
-  status: string;
+  price: number;
 
   description?: string;
 
-  image?: string;
+  images: string[];
 
-  releaseDate?: string;
+  status: string;
+
+  maker?: Maker;
 
 };
 
 
-export default function MakerDetail() {
+export default function KnifeDetail() {
 
 
   const { slug } =
     useParams();
 
 
-  const [maker, setMaker] =
-    useState<Maker | null>(null);
-
-
-  const [knives, setKnives] =
-    useState<Knife[]>([]);
-
-
-  const [collaborations, setCollaborations] =
-    useState<Collaboration[]>([]);
+  const [knife, setKnife] =
+    useState<Knife | null>(null);
 
 
   const [loading, setLoading] =
@@ -95,14 +82,18 @@ export default function MakerDetail() {
     useState("");
 
 
+  const [activeImage, setActiveImage] =
+    useState(0);
+
+
   // ==========================
-  // LOAD MAKER
+  // LOAD KNIFE
   // ==========================
 
   useEffect(() => {
 
 
-    async function loadMaker() {
+    async function loadKnife() {
 
 
       try {
@@ -110,14 +101,14 @@ export default function MakerDetail() {
 
         const response =
           await fetch(
-            `http://localhost:8080/api/makers/${slug}`
+            `http://localhost:8080/api/knives/${slug}`
           );
 
 
         if (!response.ok) {
 
           throw new Error(
-            "Maker not found"
+            "Knife not found"
           );
 
         }
@@ -127,38 +118,25 @@ export default function MakerDetail() {
           await response.json();
 
 
-        setMaker(data);
-
-
-        setKnives(
-          Array.isArray(data.knives)
-            ? data.knives
-            : []
-        );
-
-
-        setCollaborations(
-          Array.isArray(data.collaborations)
-            ? data.collaborations
-            : []
-        );
+        setKnife(data);
 
 
       } catch (error) {
 
 
         console.error(
-          "MAKER DETAIL ERROR",
+          "KNIFE DETAIL ERROR",
           error
         );
 
 
         setError(
-          "Failed loading maker"
+          "Failed loading knife"
         );
 
 
       } finally {
+
 
         setLoading(false);
 
@@ -169,7 +147,7 @@ export default function MakerDetail() {
 
     if (slug) {
 
-      loadMaker();
+      loadKnife();
 
     }
 
@@ -188,13 +166,13 @@ export default function MakerDetail() {
       <main className="
         min-h-screen
         bg-agane-bg
+        text-agane-text
         flex
         items-center
         justify-center
-        text-agane-text
       ">
 
-        Loading maker...
+        Loading knife...
 
       </main>
 
@@ -207,7 +185,7 @@ export default function MakerDetail() {
   // ERROR
   // ==========================
 
-  if (error || !maker) {
+  if (error || !knife) {
 
     return (
 
@@ -230,13 +208,23 @@ export default function MakerDetail() {
             font-serif
           ">
 
-            Maker not found
+            Knife not found
 
           </h1>
 
 
+          <p className="
+            mt-5
+            opacity-60
+          ">
+
+            We couldn't find the knife you're looking for.
+
+          </p>
+
+
           <Link
-            to="/makers"
+            to="/shop"
             className="
               inline-block
               mt-8
@@ -249,9 +237,10 @@ export default function MakerDetail() {
             "
           >
 
-            ← Back to Makers
+            ← Back to Shop
 
           </Link>
+
 
         </div>
 
@@ -260,6 +249,16 @@ export default function MakerDetail() {
     );
 
   }
+
+
+  const images =
+    Array.isArray(knife.images)
+      ? knife.images
+      : [];
+
+
+  const currentImage =
+    images[activeImage];
 
 
   return (
@@ -280,203 +279,459 @@ export default function MakerDetail() {
 
 
         {/* ==========================
-            MAKER HERO
+            BACK
+        ========================== */}
+
+        <Link
+          to="/shop"
+          className="
+            inline-block
+            mb-12
+            text-sm
+            opacity-60
+            hover:opacity-100
+            transition
+          "
+        >
+
+          ← Back to Shop
+
+        </Link>
+
+
+        {/* ==========================
+            PRODUCT
         ========================== */}
 
         <section className="
           grid
           lg:grid-cols-2
           gap-16
-          items-center
+          items-start
         ">
 
 
-          {/* IMAGE */}
+          {/* ==========================
+              IMAGE GALLERY
+          ========================== */}
 
-          <div className="
-            bg-white
-            border
-            overflow-hidden
-          ">
+          <div>
 
-            {maker.image ? (
 
-              <img
-                src={
-                  `http://localhost:8080${maker.image}`
-                }
-                alt={maker.name}
-                className="
+            <div className="
+              bg-white
+              border
+              overflow-hidden
+            ">
+
+
+              {currentImage ? (
+
+                <img
+                  src={
+                    `http://localhost:8080${currentImage}`
+                  }
+                  alt={knife.title}
+                  className="
+                    w-full
+                    h-[700px]
+                    object-cover
+                  "
+                />
+
+              ) : (
+
+                <div className="
                   w-full
-                  h-[650px]
-                  object-cover
-                "
-              />
+                  h-[700px]
+                  flex
+                  items-center
+                  justify-center
+                  bg-agane-bg
+                  opacity-50
+                ">
 
-            ) : (
+                  No image
+
+                </div>
+
+              )}
+
+
+            </div>
+
+
+            {/* THUMBNAILS */}
+
+            {images.length > 1 && (
 
               <div className="
-                w-full
-                h-[650px]
-                flex
-                items-center
-                justify-center
-                opacity-30
+                grid
+                grid-cols-5
+                gap-3
+                mt-4
               ">
 
-                No Image
+
+                {images.map(
+                  (image, index) => (
+
+                    <button
+                      key={image + index}
+                      type="button"
+                      onClick={() =>
+                        setActiveImage(index)
+                      }
+                      className={`
+                        border
+                        overflow-hidden
+                        ${
+                          activeImage === index
+                            ? "ring-2 ring-black"
+                            : "opacity-60 hover:opacity-100"
+                        }
+                        transition
+                      `}
+                    >
+
+                      <img
+                        src={
+                          `http://localhost:8080${image}`
+                        }
+                        alt={`${knife.title} ${index + 1}`}
+                        className="
+                          w-full
+                          h-24
+                          object-cover
+                        "
+                      />
+
+                    </button>
+
+                  )
+                )}
+
 
               </div>
 
             )}
 
+
           </div>
 
 
-          {/* INFORMATION */}
+          {/* ==========================
+              INFORMATION
+          ========================== */}
 
           <div>
 
 
+            {/* STATUS */}
+
             <p className="
+              text-xs
               uppercase
               tracking-[0.35em]
-              text-xs
               opacity-50
             ">
 
-              Maker
+              {knife.status}
 
             </p>
 
+
+            {/* TITLE */}
 
             <h1 className="
               text-6xl
               font-serif
               mt-5
+              leading-tight
             ">
 
-              {maker.name}
+              {knife.title}
 
             </h1>
 
 
-            {maker.country && (
+            {/* MAKER */}
 
-              <p className="
-                mt-5
-                text-lg
-                opacity-60
-              ">
+            {knife.maker && (
 
-                {maker.country}
+              <Link
+                to={`/makers/${knife.maker.slug}`}
+                className="
+                  inline-block
+                  mt-5
+                  text-lg
+                  opacity-60
+                  hover:opacity-100
+                  transition
+                "
+              >
 
-              </p>
+                By {knife.maker.name} →
 
-            )}
-
-
-            {maker.bio && (
-
-              <p className="
-                mt-10
-                max-w-xl
-                leading-relaxed
-                opacity-80
-                text-lg
-              ">
-
-                {maker.bio}
-
-              </p>
+              </Link>
 
             )}
 
 
-            {/* EXTERNAL LINKS */}
+            {/* PRICE */}
 
             <div className="
               mt-10
-              flex
-              gap-6
-              flex-wrap
+              text-2xl
             ">
 
-
-              {maker.website && (
-
-                <a
-                  href={maker.website}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="
-                    border
-                    px-6
-                    py-3
-                    hover:bg-black
-                    hover:text-white
-                    transition
-                  "
-                >
-
-                  Website ↗
-
-                </a>
-
-              )}
-
-
-              {maker.instagram && (
-
-                <a
-                  href={maker.instagram}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="
-                    border
-                    px-6
-                    py-3
-                    hover:bg-black
-                    hover:text-white
-                    transition
-                  "
-                >
-
-                  Instagram ↗
-
-                </a>
-
-              )}
+              {knife.status === "available"
+                ? `${knife.price} SEK`
+                : "SOLD"
+              }
 
             </div>
 
 
-          </div>
+            {/* DESCRIPTION */}
+
+            {knife.description && (
+
+              <div className="
+                mt-10
+                max-w-xl
+              ">
+
+                <p className="
+                  leading-relaxed
+                  text-lg
+                  opacity-75
+                  whitespace-pre-line
+                ">
+
+                  {knife.description}
+
+                </p>
+
+              </div>
+
+            )}
 
 
-        </section>
-
-
-        {/* ==========================
-            KNIVES
-        ========================== */}
-
-        {knives.length > 0 && (
-
-          <section className="
-            mt-32
-          ">
-
+            {/* SPECS */}
 
             <div className="
-              flex
-              justify-between
-              items-end
-              mb-10
+              mt-12
+              border-t
             ">
 
 
-              <div>
+              <h2 className="
+                text-xs
+                uppercase
+                tracking-[0.3em]
+                opacity-50
+                mt-8
+                mb-6
+              ">
+
+                Specifications
+
+              </h2>
+
+
+              <div className="
+                divide-y
+                border-b
+              ">
+
+
+                {knife.steel && (
+
+                  <div className="
+                    py-4
+                    flex
+                    justify-between
+                    gap-8
+                  ">
+
+                    <span className="
+                      opacity-50
+                    ">
+
+                      Steel
+
+                    </span>
+
+                    <span>
+
+                      {knife.steel}
+
+                    </span>
+
+                  </div>
+
+                )}
+
+
+                {knife.origin && (
+
+                  <div className="
+                    py-4
+                    flex
+                    justify-between
+                    gap-8
+                  ">
+
+                    <span className="
+                      opacity-50
+                    ">
+
+                      Origin
+
+                    </span>
+
+                    <span>
+
+                      {knife.origin}
+
+                    </span>
+
+                  </div>
+
+                )}
+
+
+                {knife.bladeType && (
+
+                  <div className="
+                    py-4
+                    flex
+                    justify-between
+                    gap-8
+                  ">
+
+                    <span className="
+                      opacity-50
+                    ">
+
+                      Blade Type
+
+                    </span>
+
+                    <span>
+
+                      {knife.bladeType}
+
+                    </span>
+
+                  </div>
+
+                )}
+
+
+                {knife.length && (
+
+                  <div className="
+                    py-4
+                    flex
+                    justify-between
+                    gap-8
+                  ">
+
+                    <span className="
+                      opacity-50
+                    ">
+
+                      Length
+
+                    </span>
+
+                    <span>
+
+                      {knife.length}
+
+                    </span>
+
+                  </div>
+
+                )}
+
+
+                {knife.handle && (
+
+                  <div className="
+                    py-4
+                    flex
+                    justify-between
+                    gap-8
+                  ">
+
+                    <span className="
+                      opacity-50
+                    ">
+
+                      Handle
+
+                    </span>
+
+                    <span>
+
+                      {knife.handle}
+
+                    </span>
+
+                  </div>
+
+                )}
+
+
+                {knife.weight !== undefined &&
+                  knife.weight !== null && (
+
+                    <div className="
+                      py-4
+                      flex
+                      justify-between
+                      gap-8
+                    ">
+
+                      <span className="
+                        opacity-50
+                      ">
+
+                        Weight
+
+                      </span>
+
+                      <span>
+
+                        {knife.weight} g
+
+                      </span>
+
+                    </div>
+
+                  )}
+
+
+              </div>
+
+
+            </div>
+
+
+            {/* MAKER CARD */}
+
+            {knife.maker && (
+
+              <div className="
+                mt-12
+                border
+                bg-white
+                p-8
+              ">
+
 
                 <p className="
                   text-xs
@@ -485,372 +740,111 @@ export default function MakerDetail() {
                   opacity-50
                 ">
 
-                  Knives
+                  The Maker
 
                 </p>
 
 
-                <h2 className="
-                  text-4xl
-                  font-serif
-                  mt-3
+                <div className="
+                  flex
+                  items-center
+                  gap-6
+                  mt-6
                 ">
 
-                  Knives by {maker.name}
 
-                </h2>
-
-              </div>
-
-
-              <span className="
-                opacity-50
-              ">
-
-                {knives.length} piece
-                {knives.length !== 1 ? "s" : ""}
-
-              </span>
-
-
-            </div>
-
-
-            <div className="
-              grid
-              md:grid-cols-3
-              gap-10
-            ">
-
-
-              {knives.map(knife => (
-
-                <article
-                  key={knife.id}
-                  className="
-                    bg-white
-                    border
-                    overflow-hidden
-                    group
-                  "
-                >
-
-
-                  {/* IMAGE */}
-
-                  <Link
-                    to={`/shop/${knife.slug}`}
-                  >
-
-                    {knife.images?.[0] ? (
-
-                      <img
-                        src={
-                          `http://localhost:8080${knife.images[0]}`
-                        }
-                        alt={knife.title}
-                        className="
-                          w-full
-                          h-96
-                          object-cover
-                          group-hover:scale-105
-                          transition
-                          duration-500
-                        "
-                      />
-
-                    ) : (
-
-                      <div className="
-                        w-full
-                        h-96
-                        flex
-                        items-center
-                        justify-center
-                        bg-agane-bg
-                        opacity-50
-                      ">
-
-                        No image
-
-                      </div>
-
-                    )}
-
-                  </Link>
-
-
-                  <div className="
-                    p-7
-                  ">
-
-
-                    <p className="
-                      text-xs
-                      uppercase
-                      tracking-[0.25em]
-                      opacity-50
-                    ">
-
-                      {knife.status}
-
-                    </p>
-
-
-                    <Link
-                      to={`/shop/${knife.slug}`}
-                    >
-
-                      <h3 className="
-                        text-3xl
-                        font-serif
-                        mt-3
-                        hover:opacity-60
-                        transition
-                      ">
-
-                        {knife.title}
-
-                      </h3>
-
-                    </Link>
-
-
-                    {knife.steel && (
-
-                      <p className="
-                        mt-3
-                        opacity-60
-                      ">
-
-                        {knife.steel}
-
-                      </p>
-
-                    )}
-
-
-                    <div className="
-                      mt-6
-                      border-t
-                      pt-5
-                      flex
-                      justify-between
-                    ">
-
-
-                      <span>
-
-                        {knife.status === "available"
-                          ? `${knife.price} SEK`
-                          : knife.status.toUpperCase()
-                        }
-
-                      </span>
-
-
-                      <Link
-                        to={`/shop/${knife.slug}`}
-                        className="
-                          hover:opacity-50
-                        "
-                      >
-
-                        View →
-
-                      </Link>
-
-
-                    </div>
-
-
-                  </div>
-
-
-                </article>
-
-              ))}
-
-
-            </div>
-
-
-          </section>
-
-        )}
-
-
-        {/* ==========================
-            COLLABORATIONS
-        ========================== */}
-
-        {collaborations.length > 0 && (
-
-          <section className="
-            mt-32
-          ">
-
-
-            <div className="
-              mb-10
-            ">
-
-
-              <p className="
-                text-xs
-                uppercase
-                tracking-[0.3em]
-                opacity-50
-              ">
-
-                Work together
-
-              </p>
-
-
-              <h2 className="
-                text-4xl
-                font-serif
-                mt-3
-              ">
-
-                Collaborations
-
-              </h2>
-
-
-            </div>
-
-
-            <div className="
-              grid
-              md:grid-cols-2
-              gap-10
-            ">
-
-
-              {collaborations.map(collab => (
-
-                <article
-                  key={collab.id}
-                  className="
-                    bg-white
-                    border
-                    overflow-hidden
-                  "
-                >
-
-
-                  {collab.image && (
+                  {knife.maker.image ? (
 
                     <img
                       src={
-                        `http://localhost:8080${collab.image}`
+                        `http://localhost:8080${knife.maker.image}`
                       }
-                      alt={collab.title}
+                      alt={knife.maker.name}
                       className="
-                        w-full
-                        h-80
+                        w-24
+                        h-24
                         object-cover
+                        border
                       "
                     />
+
+                  ) : (
+
+                    <div className="
+                      w-24
+                      h-24
+                      border
+                      flex
+                      items-center
+                      justify-center
+                      opacity-30
+                    ">
+
+                      No Image
+
+                    </div>
 
                   )}
 
 
-                  <div className="
-                    p-8
-                  ">
-
-
-                    <p className="
-                      text-xs
-                      uppercase
-                      tracking-[0.25em]
-                      opacity-50
-                    ">
-
-                      {collab.status}
-
-                    </p>
+                  <div>
 
 
                     <h3 className="
-                      text-3xl
+                      text-2xl
                       font-serif
-                      mt-3
                     ">
 
-                      {collab.title}
+                      {knife.maker.name}
 
                     </h3>
 
 
-                    {collab.description && (
+                    {knife.maker.country && (
 
                       <p className="
-                        mt-5
-                        opacity-70
-                        leading-relaxed
+                        mt-2
+                        opacity-60
                       ">
 
-                        {collab.description}
+                        {knife.maker.country}
 
                       </p>
 
                     )}
 
 
-                    <div className="
-                      mt-6
-                      border-t
-                      pt-5
-                      flex
-                      justify-between
-                    ">
+                    <Link
+                      to={`/makers/${knife.maker.slug}`}
+                      className="
+                        inline-block
+                        mt-4
+                        text-sm
+                        hover:opacity-50
+                        transition
+                      "
+                    >
 
+                      View Maker →
 
-                      <span>
-
-                        {collab.quantity} pieces
-
-                      </span>
-
-
-                      {collab.releaseDate && (
-
-                        <span className="
-                          opacity-60
-                        ">
-
-                          {new Date(
-                            collab.releaseDate
-                          ).toLocaleDateString(
-                            "en-GB"
-                          )}
-
-                        </span>
-
-                      )}
-
-
-                    </div>
+                    </Link>
 
 
                   </div>
 
 
-                </article>
-
-              ))}
+                </div>
 
 
-            </div>
+              </div>
+
+            )}
 
 
-          </section>
+          </div>
 
-        )}
+
+        </section>
 
 
       </div>
