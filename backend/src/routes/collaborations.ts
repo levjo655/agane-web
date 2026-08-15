@@ -1,478 +1,549 @@
 import { Router } from "express";
-import multer from "multer";
 import { prisma } from "../prisma";
-
+import upload from "../middleware/upload";
+import fs from "fs";
+import path from "path";
 
 const router = Router();
-
-
-
-
-// ==========================
-// IMAGE STORAGE
-// ==========================
-
-
-const storage = multer.diskStorage({
-
-destination:(_req,_file,cb)=>{
-
-cb(null,"uploads/");
-
-},
-
-
-filename:(_req,file,cb)=>{
-
-
-const filename =
-Date.now()
-+
-"-"
-+
-file.originalname.replace(/\s+/g,"-");
-
-
-cb(null,filename);
-
-
-}
-
-
-});
-
-
-const upload = multer({
-storage
-});
-
-
-
-
-
-
-
 
 
 // ==========================
 // GET ALL COLLABORATIONS
 // ==========================
 
+router.get("/", async (_req, res) => {
 
-router.get("/", async(_req,res)=>{
+  try {
 
+    const collaborations =
+      await prisma.collaboration.findMany({
 
-try{
+        include: {
+          maker: true
+        },
 
+        orderBy: {
+          createdAt: "desc"
+        }
 
-const collaborations =
-await prisma.collaboration.findMany({
-
-include:{
-
-maker:true
-
-},
-
-
-orderBy:{
-
-createdAt:"desc"
-
-}
+      });
 
 
-});
+    res.json(collaborations);
 
+  } catch (error) {
 
+    console.error(
+      "GET COLLABORATIONS ERROR:",
+      error
+    );
 
-res.json(collaborations);
+    res.status(500).json({
+      error: "Failed fetching collaborations"
+    });
 
-
-
-}catch(error){
-
-
-console.error(
-"GET COLLABORATIONS ERROR:",
-error
-);
-
-
-
-res.status(500).json({
-
-error:"Failed fetching collaborations"
+  }
 
 });
-
-
-}
-
-
-});
-
-
-
-
-
-
-
 
 
 // ==========================
 // GET SINGLE COLLABORATION
 // ==========================
 
+router.get("/:id", async (req, res) => {
 
-router.get("/:id", async(req,res)=>{
+  try {
 
-
-try{
-
-
-const collaboration =
-await prisma.collaboration.findUnique({
-
-where:{
-
-id:req.params.id
-
-},
+    const collaborationId =
+      Array.isArray(req.params.id)
+        ? req.params.id[0]
+        : req.params.id;
 
 
-include:{
+    const collaboration =
+      await prisma.collaboration.findUnique({
 
-maker:true
+        where: {
+          id: collaborationId
+        },
 
-}
+        include: {
+          maker: true
+        }
 
-
-});
-
-
-
-
-
-if(!collaboration){
+      });
 
 
-return res.status(404).json({
+    if (!collaboration) {
 
-error:"Collaboration not found"
+      return res.status(404).json({
+        error: "Collaboration not found"
+      });
 
-});
-
-
-}
-
+    }
 
 
+    res.json(collaboration);
 
-res.json(collaboration);
+  } catch (error) {
 
+    console.error(
+      "GET COLLABORATION ERROR:",
+      error
+    );
 
+    res.status(500).json({
+      error: "Failed loading collaboration"
+    });
 
-}catch(error){
-
-
-console.error(
-"GET COLLABORATION ERROR:",
-error
-);
-
-
-
-res.status(500).json({
-
-error:"Failed loading collaboration"
+  }
 
 });
-
-
-}
-
-
-});
-
-
-
-
-
-
-
 
 
 // ==========================
 // CREATE COLLABORATION
 // ==========================
 
-
 router.post(
+  "/",
+  upload.single("image"),
+  async (req, res) => {
 
-"/",
+    try {
 
-upload.single("image"),
-
-async(req,res)=>{
-
-
-try{
-
-
-const imagePath =
-req.file
-?
-`/uploads/${req.file.filename}`
-:
-null;
+      const imagePath =
+        req.file
+          ? `/uploads/${req.file.filename}`
+          : null;
 
 
+      const quantity =
+        Number(req.body.quantity);
 
 
+      const collaboration =
+        await prisma.collaboration.create({
 
-const collaboration =
-await prisma.collaboration.create({
+          data: {
 
-data:{
+            title:
+              req.body.title,
 
+            makerId:
+              req.body.makerId || null,
 
-title:req.body.title,
+            description:
+              req.body.description || null,
 
+            quantity:
+              Number.isNaN(quantity)
+                ? 0
+                : quantity,
 
-makerId:req.body.makerId || null,
+            status:
+              req.body.status ||
+              "upcoming",
 
+            releaseDate:
+              req.body.releaseDate
+                ? new Date(
+                    req.body.releaseDate
+                  )
+                : null,
 
-description:req.body.description || null,
+            image:
+              imagePath
 
+          },
 
-quantity:Number(req.body.quantity),
+          include: {
+            maker: true
+          }
 
-
-status:req.body.status || "upcoming",
-
-
-releaseDate:req.body.releaseDate
-?
-new Date(req.body.releaseDate)
-:
-null,
-
-
-image:imagePath
-
-
-},
-
-
-include:{
-
-maker:true
-
-}
-
-
-});
+        });
 
 
+      res.json(collaboration);
 
+    } catch (error) {
 
-res.json(collaboration);
+      console.error(
+        "CREATE COLLABORATION ERROR:",
+        error
+      );
 
+      res.status(500).json({
+        error: "Failed creating collaboration"
+      });
 
+    }
 
-}catch(error){
-
-
-console.error(
-
-"CREATE COLLABORATION ERROR:",
-error
-
+  }
 );
-
-
-
-res.status(500).json({
-
-error:"Failed creating collaboration"
-
-});
-
-
-}
-
-
-}
-
-);
-
-
-
-
-
-
-
 
 
 // ==========================
 // UPDATE COLLABORATION
 // ==========================
 
+router.put(
+  "/:id",
+  upload.single("image"),
+  async (req, res) => {
 
-router.put("/:id", async(req,res)=>{
+    try {
 
-
-try{
-
-
-const collaboration =
-await prisma.collaboration.update({
-
-where:{
-
-id:req.params.id
-
-},
+      const collaborationId =
+        Array.isArray(req.params.id)
+          ? req.params.id[0]
+          : req.params.id;
 
 
-data:{
+      // ==========================
+      // FIND EXISTING
+      // ==========================
+
+      const existing =
+        await prisma.collaboration.findUnique({
+
+          where: {
+            id: collaborationId
+          }
+
+        });
 
 
-title:req.body.title,
+      if (!existing) {
+
+        return res.status(404).json({
+
+          error:
+            "Collaboration not found"
+
+        });
+
+      }
 
 
-makerId:req.body.makerId || null,
+      // ==========================
+      // IMAGE LOGIC
+      // ==========================
+
+      let image =
+        existing.image;
 
 
-description:req.body.description || null,
+      const removeImage =
+        req.body.removeImage === "true";
 
 
-quantity:Number(req.body.quantity),
+      // --------------------------
+      // REMOVE IMAGE
+      // --------------------------
+
+      if (
+        removeImage &&
+        existing.image
+      ) {
+
+        try {
+
+          const oldPath =
+            path.join(
+              __dirname,
+              "../../",
+              existing.image
+            );
 
 
-status:req.body.status || "upcoming",
+          if (
+            fs.existsSync(oldPath)
+          ) {
+
+            fs.unlinkSync(
+              oldPath
+            );
+
+          }
+
+        } catch (error) {
+
+          console.error(
+            "REMOVE COLLAB IMAGE ERROR:",
+            error
+          );
+
+        }
 
 
-releaseDate:req.body.releaseDate
-?
-new Date(req.body.releaseDate)
-:
-null
+        image = null;
+
+      }
 
 
+      // --------------------------
+      // NEW IMAGE
+      // --------------------------
 
-},
+      if (req.file) {
 
+        // If there is an old image,
+        // delete it first.
 
-include:{
+        if (existing.image) {
 
-maker:true
+          try {
 
-}
-
-
-});
-
-
-
-
-res.json(collaboration);
-
-
-
-}catch(error){
+            const oldPath =
+              path.join(
+                __dirname,
+                "../../",
+                existing.image
+              );
 
 
-console.error(
+            if (
+              fs.existsSync(oldPath)
+            ) {
 
-"UPDATE COLLABORATION ERROR:",
-error
+              fs.unlinkSync(
+                oldPath
+              );
 
+            }
+
+          } catch (error) {
+
+            console.error(
+              "OLD COLLAB IMAGE DELETE ERROR:",
+              error
+            );
+
+          }
+
+        }
+
+
+        image =
+          `/uploads/${req.file.filename}`;
+
+      }
+
+
+      // ==========================
+      // QUANTITY
+      // ==========================
+
+      const quantity =
+        Number(req.body.quantity);
+
+
+      // ==========================
+      // UPDATE
+      // ==========================
+
+      const collaboration =
+        await prisma.collaboration.update({
+
+          where: {
+
+            id:
+              collaborationId
+
+          },
+
+          data: {
+
+            title:
+              req.body.title,
+
+            makerId:
+              req.body.makerId ||
+              null,
+
+            description:
+              req.body.description ||
+              null,
+
+            quantity:
+              Number.isNaN(quantity)
+                ? 0
+                : quantity,
+
+            status:
+              req.body.status ||
+              "upcoming",
+
+            releaseDate:
+              req.body.releaseDate
+                ? new Date(
+                    req.body.releaseDate
+                  )
+                : null,
+
+            image
+
+          },
+
+          include: {
+
+            maker: true
+
+          }
+
+        });
+
+
+      res.json(
+        collaboration
+      );
+
+
+    } catch (error) {
+
+      console.error(
+        "UPDATE COLLABORATION ERROR:",
+        error
+      );
+
+
+      res.status(500).json({
+
+        error:
+          "Failed updating collaboration"
+
+      });
+
+    }
+
+  }
 );
-
-
-
-res.status(500).json({
-
-error:"Failed updating collaboration"
-
-});
-
-
-}
-
-
-});
-
-
-
-
-
-
-
 
 
 // ==========================
 // DELETE COLLABORATION
 // ==========================
 
+router.delete(
+  "/:id",
+  async (req, res) => {
 
-router.delete("/:id", async(req,res)=>{
+    try {
 
-
-try{
-
-
-await prisma.collaboration.delete({
-
-where:{
-
-id:req.params.id
-
-}
-
-});
+      const collaborationId =
+        Array.isArray(req.params.id)
+          ? req.params.id[0]
+          : req.params.id;
 
 
+      const collaboration =
+        await prisma.collaboration.findUnique({
 
-res.json({
+          where: {
 
-message:"Collaboration deleted"
+            id:
+              collaborationId
 
-});
+          }
+
+        });
 
 
+      if (!collaboration) {
 
-}catch(error){
+        return res.status(404).json({
+
+          error:
+            "Collaboration not found"
+
+        });
+
+      }
 
 
-console.error(
+      // ==========================
+      // DELETE IMAGE
+      // ==========================
 
-"DELETE COLLABORATION ERROR:",
-error
+      if (collaboration.image) {
 
+        try {
+
+          const imagePath =
+            path.join(
+              __dirname,
+              "../../",
+              collaboration.image
+            );
+
+
+          if (
+            fs.existsSync(imagePath)
+          ) {
+
+            fs.unlinkSync(
+              imagePath
+            );
+
+          }
+
+        } catch (error) {
+
+          console.error(
+            "COLLAB IMAGE DELETE ERROR:",
+            error
+          );
+
+        }
+
+      }
+
+
+      // ==========================
+      // DELETE DATABASE RECORD
+      // ==========================
+
+      await prisma.collaboration.delete({
+
+        where: {
+
+          id:
+            collaborationId
+
+        }
+
+      });
+
+
+      res.json({
+
+        message:
+          "Collaboration deleted"
+
+      });
+
+
+    } catch (error) {
+
+      console.error(
+        "DELETE COLLABORATION ERROR:",
+        error
+      );
+
+
+      res.status(500).json({
+
+        error:
+          "Failed deleting collaboration"
+
+      });
+
+    }
+
+  }
 );
-
-
-
-res.status(500).json({
-
-error:"Failed deleting collaboration"
-
-});
-
-
-}
-
-
-});
-
-
-
-
-
-
 
 
 export default router;

@@ -12,906 +12,1038 @@ import {
 } from "react-router-dom";
 
 
-
-
+// ==========================
+// TYPES
+// ==========================
 
 type Maker = {
 
-  id:string;
+  id: string;
 
-  name:string;
+  name: string;
 
-  slug:string;
+  slug: string;
 
-  country?:string;
+  country?: string;
 
-  bio?:string;
+  bio?: string;
+
+  image?: string | null;
 
 };
-
-
-
 
 
 type Knife = {
 
-  id:string;
+  id: string;
 
-  title:string;
+  title: string;
 
-  price:number;
+  price: number;
 
-  status:string;
+  status: string;
 
-  images:string[];
+  images: string[];
 
-  maker?:Maker;
+  maker?: Maker;
 
 };
-
-
-
 
 
 type Collaboration = {
 
-  id:string;
+  id: string;
 
-  title:string;
+  title: string;
 
-  quantity:number;
+  quantity: number;
 
-  status:string;
+  status: string;
 
-  description?:string;
+  description?: string;
 
-  maker?:Maker;
+  image?: string | null;
+
+  releaseDate?: string | null;
+
+  maker?: Maker;
 
 };
 
 
 
+// ==========================
+// ADMIN
+// ==========================
 
+export default function Admin() {
 
 
+  const navigate =
+    useNavigate();
 
 
-export default function Admin(){
+  const {
+    user,
+    logout
+  } = useAuth0();
 
 
+  const [loading, setLoading] =
+    useState(true);
 
-const navigate =
-useNavigate();
 
+  const [makers, setMakers] =
+    useState<Maker[]>([]);
 
 
-const {
-user,
-logout
-}=useAuth0();
+  const [knives, setKnives] =
+    useState<Knife[]>([]);
 
 
+  const [collaborations, setCollaborations] =
+    useState<Collaboration[]>([]);
 
 
 
-const [loading,setLoading]
-=
-useState(true);
+  // ==========================
+  // LOAD DATA
+  // ==========================
 
+  async function loadData() {
 
+    try {
 
-const [makers,setMakers]
-=
-useState<Maker[]>([]);
 
+      // ==========================
+      // MAKERS
+      // ==========================
 
+      const makersResponse =
+        await fetch(
+          "http://localhost:8080/api/makers"
+        );
 
-const [knives,setKnives]
-=
-useState<Knife[]>([]);
 
+      const makersData =
+        await makersResponse.json();
 
 
-const [collaborations,setCollaborations]
-=
-useState<Collaboration[]>([]);
+      if (Array.isArray(makersData)) {
 
+        setMakers(makersData);
 
+      }
 
 
 
+      // ==========================
+      // KNIVES
+      // ==========================
 
+      const knivesResponse =
+        await fetch(
+          "http://localhost:8080/api/knives"
+        );
 
 
+      const knivesData =
+        await knivesResponse.json();
 
 
-async function loadData(){
+      if (Array.isArray(knivesData)) {
 
+        setKnives(knivesData);
 
-try{
+      }
 
 
-// MAKERS
 
-const makersResponse =
-await fetch(
-"http://localhost:8080/api/makers"
-);
+      // ==========================
+      // COLLABORATIONS
+      // ==========================
 
+      const collabResponse =
+        await fetch(
+          "http://localhost:8080/api/collaborations"
+        );
 
-const makersData =
-await makersResponse.json();
 
+      const collabData =
+        await collabResponse.json();
 
-if(Array.isArray(makersData)){
 
-setMakers(makersData);
+      if (Array.isArray(collabData)) {
 
-}
+        setCollaborations(collabData);
 
+      }
 
 
+    } catch (error) {
 
+      console.error(
+        "ADMIN LOAD ERROR",
+        error
+      );
 
 
+    } finally {
 
+      setLoading(false);
 
-// KNIVES
+    }
 
-const knivesResponse =
-await fetch(
-"http://localhost:8080/api/knives"
-);
+  }
 
 
-const knivesData =
-await knivesResponse.json();
 
+  useEffect(() => {
 
-if(Array.isArray(knivesData)){
+    loadData();
 
-setKnives(knivesData);
+  }, []);
 
-}
 
 
+  // ==========================
+  // DELETE KNIFE
+  // ==========================
 
+  async function deleteKnife(
+    id: string
+  ) {
 
 
+    if (
+      !confirm(
+        "Delete this knife?"
+      )
+    ) {
 
+      return;
 
+    }
 
-// COLLABORATIONS
 
-const collabResponse =
-await fetch(
-"http://localhost:8080/api/collaborations"
-);
+    try {
 
+      const response =
+        await fetch(
 
-const collabData =
-await collabResponse.json();
+          `http://localhost:8080/api/knives/${id}`,
 
+          {
+            method: "DELETE"
+          }
 
-if(Array.isArray(collabData)){
+        );
 
-setCollaborations(collabData);
 
-}
+      if (!response.ok) {
 
+        throw new Error(
+          "Failed deleting knife"
+        );
 
+      }
 
 
+      setKnives(prev =>
 
-}catch(error){
+        prev.filter(
+          knife =>
+            knife.id !== id
+        )
 
+      );
 
-console.log(
-"ADMIN LOAD ERROR",
-error
-);
 
+    } catch (error) {
 
-}
-finally{
+      console.error(
+        "DELETE KNIFE ERROR",
+        error
+      );
 
+    }
 
-setLoading(false);
+  }
 
 
-}
 
+  // ==========================
+  // DELETE COLLABORATION
+  // ==========================
 
+  async function deleteCollaboration(
+    id: string
+  ) {
 
-}
 
+    if (
+      !confirm(
+        "Delete this collaboration?"
+      )
+    ) {
 
+      return;
 
+    }
 
 
+    try {
 
+      const response =
+        await fetch(
 
-useEffect(()=>{
+          `http://localhost:8080/api/collaborations/${id}`,
 
+          {
+            method: "DELETE"
+          }
 
-loadData();
+        );
 
 
-},[]);
+      if (!response.ok) {
 
+        throw new Error(
+          "Failed deleting collaboration"
+        );
 
+      }
 
 
+      setCollaborations(prev =>
 
+        prev.filter(
+          item =>
+            item.id !== id
+        )
 
+      );
 
 
-async function deleteKnife(id:string){
+    } catch (error) {
 
+      console.error(
+        "DELETE COLLABORATION ERROR",
+        error
+      );
 
-if(!confirm("Delete knife?"))
-return;
+    }
 
+  }
 
 
-await fetch(
 
-`http://localhost:8080/api/knives/${id}`,
+  // ==========================
+  // PAGE
+  // ==========================
 
-{
+  return (
 
-method:"DELETE"
+    <main className="
+      min-h-screen
+      bg-agane-bg
+      text-agane-text
+      px-6
+      py-16
+    ">
 
-}
 
-);
+      <div className="
+        max-w-7xl
+        mx-auto
+      ">
 
 
+        {/* ==========================
+            HEADER
+        ========================== */}
 
-setKnives(prev=>
+        <header className="
+          flex
+          justify-between
+          items-center
+          mb-16
+        ">
 
-prev.filter(
-knife=>knife.id!==id
-)
 
-);
+          <div>
 
+            <h1 className="
+              text-5xl
+              font-serif
+            ">
 
+              Ågane Workshop
 
-}
+            </h1>
 
 
+            <p className="
+              mt-3
+              opacity-70
+            ">
 
+              Welcome{" "}
+              {user?.name}
 
+            </p>
 
+          </div>
 
 
 
+          <button
+            onClick={() =>
+              logout()
+            }
+            className="
+              border
+              px-6
+              py-3
+            "
+          >
 
-async function deleteCollaboration(id:string){
+            Logout
 
+          </button>
 
-if(!confirm("Delete collaboration?"))
-return;
 
+        </header>
 
 
-await fetch(
 
-`http://localhost:8080/api/collaborations/${id}`,
+        {/* ==========================
+            LOADING
+        ========================== */}
 
-{
+        {loading && (
 
-method:"DELETE"
+          <p className="
+            mb-12
+          ">
 
-}
+            Loading...
 
-);
+          </p>
 
+        )}
 
 
-setCollaborations(prev=>
 
-prev.filter(
-item=>item.id!==id
-)
+        {/* ==================================================
+            MAKERS
+        ================================================== */}
 
-);
+        <section>
 
 
+          <div className="
+            flex
+            justify-between
+            items-center
+            mb-10
+          ">
 
-}
 
+            <h2 className="
+              text-4xl
+              font-serif
+            ">
 
+              Makers
 
+            </h2>
 
 
 
+            <button
+              onClick={() =>
+                navigate(
+                  "/admin/maker/new"
+                )
+              }
+              className="
+                border
+                px-6
+                py-3
+              "
+            >
 
+              + Add Maker
 
+            </button>
 
-return (
 
-<main className="
-min-h-screen
-bg-agane-bg
-text-agane-text
-px-6
-py-16
-">
+          </div>
 
 
-<div className="
-max-w-7xl
-mx-auto
-">
 
+          {makers.length === 0 ? (
 
+            <p className="
+              opacity-60
+            ">
 
+              No makers yet.
 
+            </p>
 
+          ) : (
 
+            <div className="
+              grid
+              md:grid-cols-3
+              gap-10
+            ">
 
-<header className="
-flex
-justify-between
-items-center
-mb-16
-">
 
+              {makers.map(
+                maker => (
 
-<div>
+                  <article
+                    key={maker.id}
+                    className="
+                      bg-white
+                      border
+                      p-8
+                    "
+                  >
 
-<h1 className="
-text-5xl
-font-serif
-">
 
-Ågane Workshop
+                    {/* MAKER IMAGE */}
 
-</h1>
+                    {maker.image && (
 
+                      <img
+                        src={
+                          `http://localhost:8080${maker.image}`
+                        }
+                        alt={
+                          maker.name
+                        }
+                        className="
+                          h-56
+                          w-full
+                          object-cover
+                          mb-6
+                        "
+                      />
 
-<p className="
-mt-3
-opacity-70
-">
+                    )}
 
-Welcome {user?.name}
 
-</p>
 
+                    <h3 className="
+                      text-3xl
+                      font-serif
+                    ">
 
-</div>
+                      {maker.name}
 
+                    </h3>
 
 
 
-<button
+                    {maker.country && (
 
-onClick={()=>logout()}
+                      <p className="
+                        mt-3
+                        opacity-60
+                      ">
 
-className="
-border
-px-6
-py-3
-"
+                        {maker.country}
 
->
+                      </p>
 
-Logout
+                    )}
 
-</button>
 
 
+                    {maker.bio && (
 
-</header>
+                      <p className="
+                        mt-4
+                        opacity-70
+                      ">
 
+                        {maker.bio}
 
+                      </p>
 
+                    )}
 
+                  </article>
 
+                )
+              )}
 
+            </div>
 
+          )}
 
-{
-loading && (
+        </section>
 
-<p>
 
-Loading...
 
-</p>
+        {/* ==================================================
+            KNIVES
+        ================================================== */}
 
-)
+        <section className="
+          mt-32
+        ">
 
-}
 
+          <div className="
+            flex
+            justify-between
+            items-center
+            mb-10
+          ">
 
 
+            <h2 className="
+              text-4xl
+              font-serif
+            ">
 
+              Knives
 
+            </h2>
 
 
 
+            <button
+              onClick={() =>
+                navigate(
+                  "/admin/new"
+                )
+              }
+              className="
+                border
+                px-6
+                py-3
+              "
+            >
 
-{/* MAKERS */}
+              + Add Knife
 
+            </button>
 
 
-<section>
+          </div>
 
 
-<div className="
-flex
-justify-between
-items-center
-mb-10
-">
 
+          {knives.length === 0 ? (
 
-<h2 className="
-text-4xl
-font-serif
-">
+            <p className="
+              opacity-60
+            ">
 
-Makers
+              No knives yet.
 
-</h2>
+            </p>
 
+          ) : (
 
+            <div className="
+              grid
+              md:grid-cols-3
+              gap-10
+            ">
 
-<button
 
-onClick={()=>navigate(
-"/admin/maker/new"
-)}
+              {knives.map(
+                knife => (
 
-className="
-border
-px-6
-py-3
-"
+                  <article
+                    key={knife.id}
+                    className="
+                      bg-white
+                      border
+                      p-6
+                    "
+                  >
 
->
 
-+ Add Maker
+                    {/* KNIFE IMAGE */}
 
-</button>
+                    {knife.images?.[0] && (
 
+                      <img
+                        src={
+                          `http://localhost:8080${knife.images[0]}`
+                        }
+                        alt={
+                          knife.title
+                        }
+                        className="
+                          h-64
+                          w-full
+                          object-cover
+                        "
+                      />
 
-</div>
+                    )}
 
 
 
+                    <h3 className="
+                      text-2xl
+                      font-serif
+                      mt-5
+                    ">
 
+                      {knife.title}
 
+                    </h3>
 
 
-<div className="
-grid
-md:grid-cols-3
-gap-10
-">
 
+                    <p className="
+                      mt-2
+                    ">
 
-{
+                      Maker:{" "}
 
-makers.map(maker=>(
+                      {knife.maker?.name ||
+                        "Unknown"}
 
+                    </p>
 
-<article
 
-key={maker.id}
 
-className="
-bg-white
-border
-p-8
-"
+                    <p className="
+                      mt-1
+                    ">
 
->
+                      {knife.price} SEK
 
+                    </p>
 
-<h3 className="
-text-3xl
-font-serif
-">
 
-{maker.name}
 
-</h3>
+                    <p className="
+                      mt-1
+                      opacity-60
+                      capitalize
+                    ">
 
+                      {knife.status}
 
+                    </p>
 
-<p className="
-mt-3
-opacity-60
-">
 
-{maker.country}
 
-</p>
+                    {/* ACTIONS */}
 
+                    <div className="
+                      mt-5
+                      flex
+                      gap-3
+                    ">
 
 
-<p className="
-mt-4
-opacity-70
-">
+                      <button
+                        onClick={() =>
+                          navigate(
+                            `/admin/knife/${knife.id}/edit`
+                          )
+                        }
+                        className="
+                          border
+                          px-4
+                          py-2
+                        "
+                      >
 
-{maker.bio}
+                        Edit
 
-</p>
+                      </button>
 
 
-</article>
 
+                      <button
+                        onClick={() =>
+                          deleteKnife(
+                            knife.id
+                          )
+                        }
+                        className="
+                          border
+                          border-red-600
+                          text-red-600
+                          px-4
+                          py-2
+                        "
+                      >
 
-))
+                        Delete
 
-}
+                      </button>
 
 
+                    </div>
 
-</div>
 
+                  </article>
 
+                )
+              )}
 
-</section>
+            </div>
 
+          )}
 
+        </section>
 
 
 
+        {/* ==================================================
+            COLLABORATIONS
+        ================================================== */}
 
+        <section className="
+          mt-32
+        ">
 
 
+          <div className="
+            flex
+            justify-between
+            items-center
+            mb-10
+          ">
 
-{/* KNIVES */}
 
+            <h2 className="
+              text-4xl
+              font-serif
+            ">
 
+              Collaborations
 
-<section className="
-mt-32
-">
+            </h2>
 
 
 
-<div className="
-flex
-justify-between
-items-center
-mb-10
-">
+            <button
+              onClick={() =>
+                navigate(
+                  "/admin/collaboration/new"
+                )
+              }
+              className="
+                border
+                px-6
+                py-3
+              "
+            >
 
+              + Add Collaboration
 
-<h2 className="
-text-4xl
-font-serif
-">
+            </button>
 
-Knives
 
-</h2>
+          </div>
 
 
 
-<button
+          {collaborations.length === 0 ? (
 
-onClick={()=>navigate(
-"/admin/new"
-)}
+            <p className="
+              opacity-60
+            ">
 
-className="
-border
-px-6
-py-3
-"
+              No collaborations yet.
 
->
+            </p>
 
-+ Add Knife
+          ) : (
 
-</button>
+            <div className="
+              grid
+              md:grid-cols-2
+              gap-10
+            ">
 
 
+              {collaborations.map(
+                collab => (
 
-</div>
+                  <article
+                    key={collab.id}
+                    className="
+                      bg-white
+                      border
+                      p-8
+                    "
+                  >
 
 
+                    {/* COLLAB IMAGE */}
 
+                    {collab.image && (
 
+                      <img
+                        src={
+                          `http://localhost:8080${collab.image}`
+                        }
+                        alt={
+                          collab.title
+                        }
+                        className="
+                          h-72
+                          w-full
+                          object-cover
+                          mb-6
+                        "
+                      />
 
+                    )}
 
-<div className="
-grid
-md:grid-cols-3
-gap-10
-">
 
 
-{
+                    <h3 className="
+                      text-3xl
+                      font-serif
+                    ">
 
-knives.map(knife=>(
+                      {collab.title}
 
+                    </h3>
 
-<article
 
-key={knife.id}
 
-className="
-bg-white
-border
-p-6
-"
+                    <p className="
+                      mt-3
+                    ">
 
->
+                      Maker:{" "}
 
+                      {collab.maker?.name ||
+                        "Unknown"}
 
-{
-knife.images?.[0] && (
+                    </p>
 
-<img
 
-src={
-"http://localhost:8080"+knife.images[0]
-}
 
-className="
-h-64
-w-full
-object-cover
-"
+                    <p className="
+                      mt-2
+                    ">
 
-/>
+                      {collab.quantity}{" "}
 
-)
+                      pieces
 
-}
+                    </p>
 
 
 
+                    <p className="
+                      mt-2
+                      opacity-60
+                      capitalize
+                    ">
 
-<h3 className="
-text-2xl
-font-serif
-mt-5
-">
+                      {collab.status}
 
-{knife.title}
+                    </p>
 
-</h3>
 
 
+                    {collab.releaseDate && (
 
+                      <p className="
+                        mt-2
+                        opacity-60
+                      ">
 
-<p>
+                        Release:{" "}
 
-Maker:
+                        {new Date(
+                          collab.releaseDate
+                        ).toLocaleDateString()}
 
-{" "}
+                      </p>
 
-{knife.maker?.name || "Unknown"}
+                    )}
 
-</p>
 
 
+                    {/* ACTIONS */}
 
-<p>
+                    <div className="
+                      mt-6
+                      flex
+                      gap-3
+                    ">
 
-{knife.price} SEK
 
-</p>
+                      <button
+                        onClick={() =>
+                          navigate(
+                            `/admin/collaboration/${collab.id}/edit`
+                          )
+                        }
+                        className="
+                          border
+                          px-4
+                          py-2
+                        "
+                      >
 
+                        Edit
 
+                      </button>
 
-<button
 
-onClick={()=>deleteKnife(knife.id)}
 
-className="
-mt-5
-border
-border-red-600
-text-red-600
-px-4
-py-2
-"
+                      <button
+                        onClick={() =>
+                          deleteCollaboration(
+                            collab.id
+                          )
+                        }
+                        className="
+                          border
+                          border-red-600
+                          text-red-600
+                          px-4
+                          py-2
+                        "
+                      >
 
->
+                        Delete
 
-Delete
+                      </button>
 
-</button>
 
+                    </div>
 
 
-</article>
+                  </article>
 
+                )
+              )}
 
-))
+            </div>
 
-}
+          )}
 
+        </section>
 
 
-</div>
+      </div>
 
+    </main>
 
-</section>
-
-
-
-
-
-
-
-
-
-{/* COLLABORATIONS */}
-
-
-
-<section className="
-mt-32
-">
-
-
-<div className="
-flex
-justify-between
-items-center
-mb-10
-">
-
-
-<h2 className="
-text-4xl
-font-serif
-">
-
-Collaborations
-
-</h2>
-
-
-
-
-<button
-
-onClick={()=>navigate(
-"/admin/collaboration/new"
-)}
-
-className="
-border
-px-6
-py-3
-"
-
->
-
-+ Add Collaboration
-
-</button>
-
-
-
-</div>
-
-
-
-
-
-
-<div className="
-grid
-md:grid-cols-2
-gap-10
-">
-
-
-{
-
-collaborations.map(collab=>(
-
-
-<article
-
-key={collab.id}
-
-className="
-bg-white
-border
-p-8
-"
-
->
-
-
-<h3 className="
-text-3xl
-font-serif
-">
-
-{collab.title}
-
-</h3>
-
-
-
-<p>
-
-Maker:
-
-{" "}
-
-{collab.maker?.name || "Unknown"}
-
-</p>
-
-
-
-<p>
-
-{collab.quantity} pieces
-
-</p>
-
-
-
-<button
-
-onClick={()=>deleteCollaboration(collab.id)}
-
-className="
-mt-5
-border
-border-red-600
-text-red-600
-px-4
-py-2
-"
-
->
-
-Delete
-
-</button>
-
-
-
-</article>
-
-
-))
-
-}
-
-
-
-</div>
-
-
-
-</section>
-
-
-
-
-
-
-
-
-
-</div>
-
-
-</main>
-
-
-);
-
+  );
 
 }

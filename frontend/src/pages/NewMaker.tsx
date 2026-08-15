@@ -1,294 +1,465 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+export default function NewMaker() {
 
-export default function NewMaker(){
+  const navigate = useNavigate();
 
+  const [form, setForm] = useState({
+    name: "",
+    slug: "",
+    country: "",
+    bio: "",
+    website: "",
+    instagram: ""
+  });
 
-const navigate = useNavigate();
+  const [image, setImage] = useState<File | null>(null);
 
+  const [preview, setPreview] = useState("");
 
-const [form,setForm] = useState({
+  const [loading, setLoading] = useState(false);
 
-name:"",
-slug:"",
-country:"",
-bio:"",
-image:"",
-website:"",
-instagram:""
+  const [error, setError] = useState("");
 
-});
 
+  // ==========================
+  // HANDLE TEXT INPUT
+  // ==========================
 
+  function handleChange(
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement
+    >
+  ) {
 
-const [loading,setLoading] =
-useState(false);
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value
+    });
 
+  }
 
 
-function handleChange(
-e:React.ChangeEvent<
-HTMLInputElement |
-HTMLTextAreaElement
->
-){
+  // ==========================
+  // HANDLE IMAGE
+  // ==========================
 
-setForm({
+  function handleImageChange(
+    e: React.ChangeEvent<HTMLInputElement>
+  ) {
 
-...form,
+    const file = e.target.files?.[0];
 
-[e.target.name]:
-e.target.value
+    if (!file) {
+      return;
+    }
 
-});
+    setImage(file);
 
-}
+    setPreview(
+      URL.createObjectURL(file)
+    );
 
+  }
 
 
+  // ==========================
+  // SUBMIT
+  // ==========================
 
+  async function handleSubmit(
+    e: React.FormEvent
+  ) {
 
+    e.preventDefault();
 
-async function handleSubmit(
-e:React.FormEvent
-){
+    setLoading(true);
+    setError("");
 
-e.preventDefault();
+    try {
 
+      const formData = new FormData();
 
-setLoading(true);
 
+      // TEXT FIELDS
 
+      formData.append(
+        "name",
+        form.name
+      );
 
-try{
+      formData.append(
+        "slug",
+        form.slug
+      );
 
+      formData.append(
+        "country",
+        form.country
+      );
 
-const response =
-await fetch(
+      formData.append(
+        "bio",
+        form.bio
+      );
 
-"http://localhost:8080/api/makers",
+      formData.append(
+        "website",
+        form.website
+      );
 
-{
+      formData.append(
+        "instagram",
+        form.instagram
+      );
 
-method:"POST",
 
-headers:{
+      // IMAGE
 
-"Content-Type":"application/json"
+      if (image) {
 
-},
+        formData.append(
+          "image",
+          image
+        );
 
-body:JSON.stringify(form)
+      }
 
-}
 
-);
+      const response = await fetch(
+        "http://localhost:8080/api/makers",
+        {
+          method: "POST",
+          body: formData
+        }
+      );
 
 
+      if (!response.ok) {
 
-if(!response.ok){
+        const data =
+          await response.json().catch(
+            () => null
+          );
 
-throw new Error(
-"Failed creating maker"
-);
+        throw new Error(
+          data?.error ||
+          "Failed creating maker"
+        );
 
-}
+      }
 
 
+      navigate("/admin");
 
-navigate("/admin");
 
+    } catch (error) {
 
+      console.error(
+        "CREATE MAKER ERROR:",
+        error
+      );
 
-}catch(error){
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Something went wrong creating maker"
+      );
 
+    } finally {
 
-console.log(
-"CREATE MAKER ERROR",
-error
-);
+      setLoading(false);
 
+    }
 
-}finally{
+  }
 
 
-setLoading(false);
+  return (
 
+    <main className="
+      min-h-screen
+      bg-agane-bg
+      text-agane-text
+      px-6
+      py-16
+    ">
 
-}
+      <div className="
+        max-w-4xl
+        mx-auto
+      ">
 
 
+        {/* ==========================
+            HEADER
+        ========================== */}
+
+        <h1 className="
+          text-5xl
+          font-serif
+          mb-12
+        ">
 
-}
+          Add Maker
 
+        </h1>
 
 
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-8"
+        >
 
 
+          {/* ==========================
+              BASIC INFORMATION
+          ========================== */}
 
+          <div className="
+            grid
+            md:grid-cols-2
+            gap-6
+          ">
+
 
-return (
+            <input
+              name="name"
+              placeholder="Maker Name"
+              value={form.name}
+              onChange={handleChange}
+              required
+              className="
+                border
+                border-agane-text
+                p-4
+                w-full
+                bg-transparent
+              "
+            />
 
-<main className="
-min-h-screen
-bg-agane-bg
-text-agane-text
-px-6
-py-16
-">
 
+            <input
+              name="slug"
+              placeholder="Slug"
+              value={form.slug}
+              onChange={handleChange}
+              required
+              className="
+                border
+                border-agane-text
+                p-4
+                w-full
+                bg-transparent
+              "
+            />
 
-<div className="
-max-w-4xl
-mx-auto
-">
 
+            <input
+              name="country"
+              placeholder="Country"
+              value={form.country}
+              onChange={handleChange}
+              className="
+                border
+                border-agane-text
+                p-4
+                w-full
+                bg-transparent
+              "
+            />
 
 
-<h1 className="
-text-5xl
-font-serif
-mb-12
-">
+            <input
+              name="website"
+              placeholder="Website"
+              value={form.website}
+              onChange={handleChange}
+              className="
+                border
+                border-agane-text
+                p-4
+                w-full
+                bg-transparent
+              "
+            />
 
-Add Maker
 
-</h1>
+            <input
+              name="instagram"
+              placeholder="Instagram"
+              value={form.instagram}
+              onChange={handleChange}
+              className="
+                border
+                border-agane-text
+                p-4
+                w-full
+                bg-transparent
+              "
+            />
 
 
+          </div>
 
 
+          {/* ==========================
+              IMAGE UPLOAD
+          ========================== */}
 
+          <div className="
+            border
+            border-agane-text
+            p-6
+          ">
 
-<form
 
-onSubmit={handleSubmit}
+            <label className="
+              block
+              uppercase
+              text-xs
+              tracking-widest
+              mb-4
+            ">
 
-className="
-space-y-8
-"
+              Maker Image
 
->
+            </label>
 
 
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={handleImageChange}
+              className="
+                block
+                w-full
+              "
+            />
 
 
-{[
+            <p className="
+              text-sm
+              opacity-50
+              mt-3
+            ">
 
-["name","Maker Name"],
+              JPG, PNG or WebP
 
-["slug","Slug"],
+            </p>
 
-["country","Country"],
 
-["image","Image URL"],
+            {/* PREVIEW */}
 
-["website","Website"],
+            {preview && (
 
-["instagram","Instagram"]
+              <div className="mt-8">
 
-].map(([name,label])=>(
+                <p className="
+                  text-xs
+                  uppercase
+                  tracking-widest
+                  opacity-50
+                  mb-3
+                ">
 
+                  Preview
 
-<input
+                </p>
 
-key={name}
 
-name={name}
+                <img
+                  src={preview}
+                  alt="Maker preview"
+                  className="
+                    w-64
+                    h-64
+                    object-cover
+                    border
+                  "
+                />
 
-placeholder={label}
+              </div>
 
-value={
-form[name as keyof typeof form]
-}
+            )}
 
-onChange={handleChange}
+          </div>
 
-className="
-border
-border-agane-text
-p-4
-w-full
-bg-transparent
-"
 
-/>
+          {/* ==========================
+              BIO
+          ========================== */}
 
+          <textarea
+            name="bio"
+            placeholder="Maker biography..."
+            value={form.bio}
+            onChange={handleChange}
+            className="
+              border
+              border-agane-text
+              p-4
+              w-full
+              h-48
+              bg-transparent
+            "
+          />
 
-))}
 
+          {/* ==========================
+              ERROR
+          ========================== */}
 
+          {error && (
 
+            <p className="
+              text-red-600
+            ">
 
+              {error}
 
-<textarea
+            </p>
 
-name="bio"
+          )}
 
-placeholder="Maker biography..."
 
-value={form.bio}
+          {/* ==========================
+              SAVE
+          ========================== */}
 
-onChange={handleChange}
+          <button
+            disabled={loading}
+            type="submit"
+            className="
+              bg-black
+              text-white
+              px-12
+              py-4
+              border
+              border-black
+              hover:bg-transparent
+              hover:text-black
+              transition
+              disabled:opacity-50
+            "
+          >
 
-className="
-border
-border-agane-text
-p-4
-w-full
-h-48
-bg-transparent
-"
+            {loading
+              ? "Saving..."
+              : "Save Maker"
+            }
 
-/>
+          </button>
 
 
+        </form>
 
 
+      </div>
 
+    </main>
 
-<button
-
-disabled={loading}
-
-className="
-bg-black
-text-white
-px-12
-py-4
-"
-
->
-
-{
-
-loading
-?
-"Saving..."
-:
-"Save Maker"
-
-}
-
-
-</button>
-
-
-
-
-
-</form>
-
-
-
-
-
-</div>
-
-
-</main>
-
-);
+  );
 
 }

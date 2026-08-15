@@ -2,527 +2,976 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 
-export default function EditKnife(){
+type Maker = {
+  id: string;
+  name: string;
+};
 
 
-const { id } = useParams();
+export default function EditKnife() {
 
-const navigate = useNavigate();
+  const { id } = useParams();
+  const navigate = useNavigate();
 
 
+  const [loading, setLoading] =
+    useState(true);
 
-const [loading,setLoading] =
-useState(true);
+  const [saving, setSaving] =
+    useState(false);
 
+  const [error, setError] =
+    useState("");
 
-const [saving,setSaving] =
-useState(false);
 
+  const [makers, setMakers] =
+    useState<Maker[]>([]);
 
 
-const [error,setError] =
-useState("");
+  const [existingImages, setExistingImages] =
+    useState<string[]>([]);
 
 
+  const [newImages, setNewImages] =
+    useState<FileList | null>(null);
 
-const [form,setForm] = useState({
 
-title:"",
-slug:"",
-maker:"",
-origin:"",
-steel:"",
-bladeType:"",
-length:"",
-handle:"",
-weight:"",
-description:"",
-price:"",
-status:"available"
+  const [form, setForm] = useState({
 
-});
+    title: "",
+    slug: "",
+    makerId: "",
+    origin: "",
+    steel: "",
+    bladeType: "",
+    length: "",
+    handle: "",
+    weight: "",
+    description: "",
+    price: "",
+    status: "available"
 
+  });
 
 
+  // ==========================
+  // LOAD KNIFE + MAKERS
+  // ==========================
 
+  useEffect(() => {
 
-useEffect(()=>{
+    async function loadData() {
 
+      try {
 
-async function loadKnife(){
+        const [
+          knifeResponse,
+          makersResponse
+        ] = await Promise.all([
 
+          fetch(
+            `http://localhost:8080/api/knives/${id}`
+          ),
 
-try{
+          fetch(
+            "http://localhost:8080/api/makers"
+          )
 
+        ]);
 
-const response =
-await fetch(
 
-`http://localhost:8080/api/knives/${id}`
+        if (!knifeResponse.ok) {
 
-);
+          throw new Error(
+            "Failed loading knife"
+          );
 
+        }
 
 
-const knife =
-await response.json();
+        const knife =
+          await knifeResponse.json();
 
 
+        const makersData =
+          await makersResponse.json();
 
 
-setForm({
+        if (Array.isArray(makersData)) {
 
-title:knife.title || "",
+          setMakers(makersData);
 
-slug:knife.slug || "",
+        }
 
-maker:knife.maker || "",
 
-origin:knife.origin || "",
+        setForm({
 
-steel:knife.steel || "",
+          title:
+            knife.title || "",
 
-bladeType:knife.bladeType || "",
+          slug:
+            knife.slug || "",
 
-length:knife.length || "",
+          makerId:
+            knife.maker?.id || "",
 
-handle:knife.handle || "",
+          origin:
+            knife.origin || "",
 
-weight:
-knife.weight || "",
+          steel:
+            knife.steel || "",
 
-description:
-knife.description || "",
+          bladeType:
+            knife.bladeType || "",
 
-price:
-knife.price || "",
+          length:
+            knife.length || "",
 
-status:
-knife.status || "available"
+          handle:
+            knife.handle || "",
 
+          weight:
+            knife.weight !== null &&
+            knife.weight !== undefined
+              ? String(knife.weight)
+              : "",
 
-});
+          description:
+            knife.description || "",
 
+          price:
+            knife.price !== null &&
+            knife.price !== undefined
+              ? String(knife.price)
+              : "",
 
+          status:
+            knife.status || "available"
 
-}catch(error){
+        });
 
 
-console.log(error);
+        setExistingImages(
 
-setError(
-"Failed loading knife"
-);
+          Array.isArray(knife.images)
+            ? knife.images
+            : []
 
+        );
 
 
-}finally{
+      } catch (error) {
 
+        console.error(
+          "EDIT KNIFE LOAD ERROR",
+          error
+        );
 
-setLoading(false);
+        setError(
+          "Failed loading knife"
+        );
 
+      } finally {
 
-}
+        setLoading(false);
 
+      }
 
-}
+    }
 
 
+    loadData();
 
-loadKnife();
+  }, [id]);
 
 
+  // ==========================
+  // FORM CHANGE
+  // ==========================
 
-},[id]);
+  function handleChange(
 
+    e:
+      React.ChangeEvent<
+        HTMLInputElement |
+        HTMLTextAreaElement |
+        HTMLSelectElement
+      >
 
+  ) {
 
+    setForm({
 
+      ...form,
 
+      [e.target.name]:
+        e.target.value
 
+    });
 
+  }
 
 
-function handleChange(
-e:
-React.ChangeEvent<
-HTMLInputElement |
-HTMLTextAreaElement |
-HTMLSelectElement
->
-){
+  // ==========================
+  // REMOVE EXISTING IMAGE
+  // ==========================
 
+  function removeExistingImage(
+    image: string
+  ) {
 
-setForm({
+    setExistingImages(
 
-...form,
+      prev =>
+        prev.filter(
+          item => item !== image
+        )
 
-[e.target.name]:
-e.target.value
+    );
 
+  }
 
-});
 
+  // ==========================
+  // SAVE KNIFE
+  // ==========================
 
-}
+  async function handleSubmit(
+    e: React.FormEvent
+  ) {
 
+    e.preventDefault();
 
+    setSaving(true);
 
+    setError("");
 
 
+    try {
 
+      const formData =
+        new FormData();
 
 
-async function handleSubmit(
-e:React.FormEvent
-){
+      formData.append(
+        "title",
+        form.title
+      );
 
+      formData.append(
+        "slug",
+        form.slug
+      );
 
-e.preventDefault();
+      formData.append(
+        "makerId",
+        form.makerId
+      );
 
+      formData.append(
+        "origin",
+        form.origin
+      );
 
-setSaving(true);
+      formData.append(
+        "steel",
+        form.steel
+      );
 
+      formData.append(
+        "bladeType",
+        form.bladeType
+      );
 
-try{
+      formData.append(
+        "length",
+        form.length
+      );
 
+      formData.append(
+        "handle",
+        form.handle
+      );
 
-const response =
-await fetch(
+      formData.append(
+        "weight",
+        form.weight
+      );
 
-`http://localhost:8080/api/knives/${id}`,
+      formData.append(
+        "description",
+        form.description
+      );
 
-{
+      formData.append(
+        "price",
+        form.price
+      );
 
-method:"PUT",
+      formData.append(
+        "status",
+        form.status
+      );
 
-headers:{
 
-"Content-Type":
-"application/json"
+      // Existing images we want to keep
 
-},
+      formData.append(
 
-body:
-JSON.stringify(form)
+        "existingImages",
 
-}
+        JSON.stringify(
+          existingImages
+        )
 
-);
+      );
 
 
+      // New images
 
+      if (newImages) {
 
+        Array.from(newImages).forEach(
+          image => {
 
-if(!response.ok){
+            formData.append(
+              "images",
+              image
+            );
 
-throw new Error();
+          }
+        );
 
-}
+      }
 
 
+      const response =
+        await fetch(
 
-navigate("/admin");
+          `http://localhost:8080/api/knives/${id}`,
 
+          {
 
+            method: "PUT",
 
+            body: formData
 
-}catch(error){
+          }
 
+        );
 
-console.log(error);
 
-setError(
-"Failed updating knife"
-);
+      if (!response.ok) {
 
+        const data =
+          await response.json()
+            .catch(() => null);
 
+        throw new Error(
+          data?.error ||
+          "Failed updating knife"
+        );
 
-}finally{
+      }
 
 
-setSaving(false);
+      navigate("/admin");
 
 
-}
+    } catch (error) {
 
+      console.error(
+        "UPDATE KNIFE ERROR",
+        error
+      );
 
-}
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Failed updating knife"
+      );
 
+    } finally {
 
+      setSaving(false);
 
+    }
 
+  }
 
 
+  // ==========================
+  // LOADING
+  // ==========================
 
+  if (loading) {
 
+    return (
 
+      <main className="
+        min-h-screen
+        bg-agane-bg
+        text-agane-text
+        px-6
+        py-16
+      ">
 
-if(loading){
+        <div className="
+          max-w-4xl
+          mx-auto
+        ">
 
-return (
+          <p>
+            Loading knife...
+          </p>
 
-<div className="
-p-20
-">
+        </div>
 
-Loading knife...
+      </main>
 
-</div>
+    );
 
-)
+  }
 
-}
 
+  // ==========================
+  // PAGE
+  // ==========================
 
+  return (
 
+    <main className="
+      min-h-screen
+      bg-agane-bg
+      text-agane-text
+      px-6
+      py-16
+    ">
 
+      <div className="
+        max-w-4xl
+        mx-auto
+      ">
 
 
+        <button
 
+          type="button"
 
+          onClick={() =>
+            navigate("/admin")
+          }
 
-return (
+          className="
+            mb-8
+            text-sm
+            opacity-60
+            hover:opacity-100
+          "
 
-<main className="
-min-h-screen
-bg-agane-bg
-text-agane-text
-px-6
-py-16
-">
+        >
 
+          ← Back to Workshop
 
-<div className="
-max-w-4xl
-mx-auto
-">
+        </button>
 
 
+        <h1 className="
+          text-5xl
+          font-serif
+          mb-12
+        ">
 
-<h1 className="
-text-5xl
-font-serif
-mb-12
-">
+          Edit Knife
 
-Edit Knife
+        </h1>
 
-</h1>
 
+        <form
 
+          onSubmit={handleSubmit}
 
+          className="
+            space-y-8
+          "
 
+        >
 
-<form
 
-onSubmit={handleSubmit}
+          {/* BASIC INFORMATION */}
 
-className="
-space-y-8
-"
+          <section>
 
->
+            <h2 className="
+              text-2xl
+              font-serif
+              mb-6
+            ">
 
+              Knife Information
 
+            </h2>
 
 
+            <div className="
+              grid
+              md:grid-cols-2
+              gap-6
+            ">
 
 
-<div className="
-grid
-md:grid-cols-2
-gap-6
-">
+              {[
+                ["title", "Knife Name"],
+                ["slug", "Slug"],
+                ["origin", "Origin"],
+                ["steel", "Steel"],
+                ["bladeType", "Blade Type"],
+                ["length", "Blade Length"],
+                ["handle", "Handle Material"],
+                ["weight", "Weight"],
+                ["price", "Price SEK"]
+              ].map(([name, label]) => (
 
+                <input
 
-{
-[
-["title","Knife Name"],
-["slug","Slug"],
-["maker","Maker"],
-["origin","Origin"],
-["steel","Steel"],
-["bladeType","Blade Type"],
-["length","Blade Length"],
-["handle","Handle"],
-["weight","Weight"],
-["price","Price SEK"]
+                  key={name}
 
-].map(([name,label])=>(
+                  name={name}
 
+                  placeholder={label}
 
-<input
+                  value={
+                    form[
+                      name as keyof typeof form
+                    ]
+                  }
 
-key={name}
+                  onChange={handleChange}
 
-name={name}
+                  className="
+                    border
+                    border-agane-text
+                    p-4
+                    bg-transparent
+                    w-full
+                  "
 
-placeholder={label}
+                />
 
-value={
-form[name as keyof typeof form]
-}
+              ))}
 
-onChange={handleChange}
 
-className="
-border
-p-4
-bg-transparent
-"
+            </div>
 
-/>
+          </section>
 
 
-))
+          {/* MAKER */}
 
-}
+          <section>
 
+            <label className="
+              block
+              uppercase
+              text-xs
+              tracking-widest
+              mb-3
+            ">
 
+              Maker
 
-</div>
+            </label>
 
 
+            <select
 
+              name="makerId"
 
+              value={form.makerId}
 
+              onChange={handleChange}
 
+              className="
+                border
+                border-agane-text
+                p-4
+                bg-transparent
+                w-full
+              "
 
+            >
 
-<select
+              <option value="">
+                Select Maker
+              </option>
 
-name="status"
 
-value={form.status}
+              {makers.map(maker => (
 
-onChange={handleChange}
+                <option
 
-className="
-border
-p-4
-bg-transparent
-w-full
-"
+                  key={maker.id}
 
->
+                  value={maker.id}
 
+                >
 
-<option value="available">
-Available
-</option>
+                  {maker.name}
 
+                </option>
 
-<option value="sold">
-Sold
-</option>
+              ))}
 
+            </select>
 
-<option value="archive">
-Archive
-</option>
+          </section>
 
 
+          {/* STATUS */}
 
-</select>
+          <section>
 
+            <label className="
+              block
+              uppercase
+              text-xs
+              tracking-widest
+              mb-3
+            ">
 
+              Status
 
+            </label>
 
 
+            <select
 
+              name="status"
 
+              value={form.status}
 
+              onChange={handleChange}
 
-<textarea
+              className="
+                border
+                border-agane-text
+                p-4
+                bg-transparent
+                w-full
+              "
 
-name="description"
+            >
 
-value={form.description}
+              <option value="available">
+                Available
+              </option>
 
-onChange={handleChange}
+              <option value="sold">
+                Sold
+              </option>
 
-placeholder="Description"
+              <option value="archive">
+                Archive
+              </option>
 
-className="
-border
-p-4
-bg-transparent
-w-full
-h-48
-"
+            </select>
 
-/>
+          </section>
 
 
+          {/* DESCRIPTION */}
 
+          <section>
 
+            <label className="
+              block
+              uppercase
+              text-xs
+              tracking-widest
+              mb-3
+            ">
 
+              Description
 
+            </label>
 
-{error && (
 
-<p className="
-text-red-600
-">
+            <textarea
 
-{error}
+              name="description"
 
-</p>
+              value={form.description}
 
-)}
+              onChange={handleChange}
 
+              placeholder="
+                Knife story / description...
+              "
 
+              className="
+                border
+                border-agane-text
+                p-4
+                bg-transparent
+                w-full
+                h-48
+              "
 
+            />
 
+          </section>
 
 
+          {/* EXISTING IMAGES */}
 
+          <section>
 
-<button
+            <h2 className="
+              text-2xl
+              font-serif
+              mb-6
+            ">
 
-disabled={saving}
+              Existing Images
 
-className="
-border
-px-12
-py-4
-hover:bg-black
-hover:text-white
-transition
-"
+            </h2>
 
->
 
-{
+            {existingImages.length === 0 ? (
 
-saving
-?
-"Saving..."
-:
-"Update Knife"
+              <p className="
+                opacity-60
+              ">
 
-}
+                No images uploaded.
 
-</button>
+              </p>
 
+            ) : (
 
+              <div className="
+                grid
+                grid-cols-2
+                md:grid-cols-3
+                gap-6
+              ">
 
 
+                {existingImages.map(
+                  image => (
 
+                    <div
 
-</form>
+                      key={image}
 
+                      className="
+                        relative
+                        group
+                      "
 
+                    >
 
+                      <img
 
+                        src={
+                          `http://localhost:8080${image}`
+                        }
 
-</div>
+                        alt="Knife"
 
+                        className="
+                          w-full
+                          h-56
+                          object-cover
+                          border
+                        "
 
-</main>
+                      />
 
-);
 
+                      <button
+
+                        type="button"
+
+                        onClick={() =>
+                          removeExistingImage(
+                            image
+                          )
+                        }
+
+                        className="
+                          absolute
+                          top-3
+                          right-3
+                          bg-black
+                          text-white
+                          w-9
+                          h-9
+                          flex
+                          items-center
+                          justify-center
+                          text-xl
+                        "
+
+                      >
+
+                        ×
+
+                      </button>
+
+                    </div>
+
+                  )
+                )}
+
+              </div>
+
+            )}
+
+          </section>
+
+
+          {/* NEW IMAGES */}
+
+          <section className="
+            border
+            border-agane-text
+            p-6
+          ">
+
+            <h2 className="
+              text-2xl
+              font-serif
+              mb-4
+            ">
+
+              Add New Images
+
+            </h2>
+
+
+            <p className="
+              text-sm
+              opacity-60
+              mb-4
+            ">
+
+              JPEG, PNG or WebP recommended.
+
+            </p>
+
+
+            <input
+
+              type="file"
+
+              multiple
+
+              accept="
+                image/jpeg,
+                image/jpg,
+                image/png,
+                image/webp
+              "
+
+              onChange={(e) =>
+                setNewImages(
+                  e.target.files
+                )
+              }
+
+            />
+
+          </section>
+
+
+          {/* ERROR */}
+
+          {error && (
+
+            <div className="
+              border
+              border-red-600
+              text-red-600
+              p-4
+            ">
+
+              {error}
+
+            </div>
+
+          )}
+
+
+          {/* SAVE */}
+
+          <div className="
+            flex
+            gap-4
+            items-center
+          ">
+
+            <button
+
+              type="submit"
+
+              disabled={
+                saving ||
+                !form.makerId
+              }
+
+              className="
+                bg-black
+                text-white
+                px-12
+                py-4
+                border
+                border-black
+                hover:bg-transparent
+                hover:text-black
+                transition
+                disabled:opacity-40
+              "
+
+            >
+
+              {saving
+                ? "Saving Knife..."
+                : "Update Knife"
+              }
+
+            </button>
+
+
+            <button
+
+              type="button"
+
+              onClick={() =>
+                navigate("/admin")
+              }
+
+              className="
+                border
+                px-8
+                py-4
+              "
+
+            >
+
+              Cancel
+
+            </button>
+
+          </div>
+
+
+        </form>
+
+      </div>
+
+    </main>
+
+  );
 
 }

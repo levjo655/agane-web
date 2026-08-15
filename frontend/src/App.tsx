@@ -5,149 +5,93 @@ import AvailableKnives from "./pages/AvailableKnives";
 import Admin from "./pages/Admin";
 import Login from "./pages/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
+
 import NewKnife from "./pages/NewKnife";
-import NewCollaboration from "./pages/NewCollaboration";
-import Collection from "./pages/Collection";
-import Navbar from "./components/Navbar";
-import KnifeDetail from "./pages/KnifeDetail";
 import EditKnife from "./pages/EditKnife";
+
+import NewCollaboration from "./pages/NewCollaboration";
+import EditCollaboration from "./pages/EditCollaboration";
+
+import Collection from "./pages/Collection";
+import KnifeDetail from "./pages/KnifeDetail";
+
 import Collaborations from "./pages/Collaborations";
+
 import MakerProfile from "./pages/MakerProfile";
 import Makers from "./pages/Makers";
 import NewMaker from "./pages/NewMaker";
 
-
-
-
-
-console.log("ADMIN COMPONENT:", Admin);
-
+import Navbar from "./components/Navbar";
 
 
 function App() {
-
 
   return (
 
     <>
 
-
       <Navbar />
 
-
-
       <Routes>
-        <Route
- path="/admin/makers"
- element={
-   <ProtectedRoute>
-     <Makers />
-   </ProtectedRoute>
- }
-/>
-<Route
-path="/admin/makers"
-element={<Makers/>}
-/>
-<Route
-path="/admin/maker/new"
-element={<NewMaker/>}
-/>
 
 
-<Route
- path="/admin/makers/new"
- element={
-   <ProtectedRoute>
-     <NewMaker />
-   </ProtectedRoute>
- }
-/>
-
-
-        {/* PUBLIC */}
+        {/* ==================================================
+            PUBLIC
+        ================================================== */}
 
 
         <Route
           path="/"
           element={<Home />}
         />
-        <Route
-  path="/collection/:slug"
-  element={<KnifeDetail />}
-/>
-<Route
-
-path="/collaborations"
-
-element={<Collaborations />}
-
-/>
-
 
 
         <Route
           path="/collection"
           element={<Collection />}
         />
+
+
         <Route
-  path="/admin/knife/:id/edit"
-  element={
-    <ProtectedRoute>
-      <EditKnife />
-    </ProtectedRoute>
-  }
-/>
-<Route
-
-path="/makers/:maker"
-
-element={<MakerProfile />}
-
-/>
-        
-
+          path="/collection/:slug"
+          element={<KnifeDetail />}
+        />
 
 
         <Route
           path="/knives"
           element={<AvailableKnives />}
-        /> 
+        />
+
+
         <Route
+          path="/collaborations"
+          element={<Collaborations />}
+        />
 
-path="/admin/knife/:id/edit"
 
-element={
+        <Route
+          path="/makers"
+          element={<Makers />}
+        />
 
-<ProtectedRoute>
 
-<EditKnife />
-
-</ProtectedRoute>
-
-}
-
-/>
-
+        <Route
+          path="/makers/:maker"
+          element={<MakerProfile />}
+        />
 
 
         <Route
           path="/login"
           element={<Login />}
         />
-        <Route
-  path="/collection/:slug"
-  element={<KnifeDetail />}
-/>
-        
 
 
 
-
-
-
-        {/* ADMIN */}
-
+        {/* ==================================================
+            ADMIN DASHBOARD
+        ================================================== */}
 
 
         <Route
@@ -161,6 +105,11 @@ element={
 
 
 
+        {/* ==================================================
+            ADMIN — KNIVES
+        ================================================== */}
+
+
         <Route
           path="/admin/new"
           element={
@@ -170,6 +119,60 @@ element={
           }
         />
 
+
+        <Route
+          path="/admin/knife/:id/edit"
+          element={
+            <ProtectedRoute>
+              <EditKnife />
+            </ProtectedRoute>
+          }
+        />
+
+
+
+        {/* ==================================================
+            ADMIN — MAKERS
+        ================================================== */}
+
+
+        <Route
+          path="/admin/makers"
+          element={
+            <ProtectedRoute>
+              <Makers />
+            </ProtectedRoute>
+          }
+        />
+
+
+        <Route
+          path="/admin/maker/new"
+          element={
+            <ProtectedRoute>
+              <NewMaker />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* Keep this route too in case something currently
+            links to /admin/makers/new */}
+
+        <Route
+          path="/admin/makers/new"
+          element={
+            <ProtectedRoute>
+              <NewMaker />
+            </ProtectedRoute>
+          }
+        />
+
+
+
+        {/* ==================================================
+            ADMIN — COLLABORATIONS
+        ================================================== */}
 
 
         <Route
@@ -182,9 +185,17 @@ element={
         />
 
 
+        <Route
+          path="/admin/collaboration/:id/edit"
+          element={
+            <ProtectedRoute>
+              <EditCollaboration />
+            </ProtectedRoute>
+          }
+        />
+
 
       </Routes>
-
 
     </>
 

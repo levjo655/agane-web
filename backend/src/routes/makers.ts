@@ -1,10 +1,10 @@
 import { Router } from "express";
 import { prisma } from "../prisma";
-
+import upload from "../middleware/upload";
+import fs from "fs";
+import path from "path";
 
 const router = Router();
-
-
 
 
 // ==========================
@@ -24,22 +24,17 @@ router.get("/", async (_req, res) => {
 
       });
 
-
     res.json(makers);
 
-
-  } catch(error) {
+  } catch (error) {
 
     console.error(
       "GET MAKERS ERROR:",
       error
     );
 
-
     res.status(500).json({
-
       error: String(error)
-
     });
 
   }
@@ -47,21 +42,19 @@ router.get("/", async (_req, res) => {
 });
 
 
-
-
-
-
-
-
 // ==========================
 // GET SINGLE MAKER
 // BY ID OR SLUG
 // ==========================
 
-router.get("/:id", async(req,res)=>{
-
+router.get("/:id", async (req, res) => {
 
   try {
+
+    const identifier =
+      Array.isArray(req.params.id)
+        ? req.params.id[0]
+        : req.params.id;
 
 
     const maker =
@@ -72,337 +65,379 @@ router.get("/:id", async(req,res)=>{
           OR: [
 
             {
-              id:req.params.id
+              id: identifier
             },
 
             {
-              slug:req.params.id
+              slug: identifier
             }
 
           ]
 
         },
 
-
         include: {
 
-          knives:true,
+          knives: true,
 
-          collaborations:true
+          collaborations: true
 
         }
-
 
       });
 
 
-
-
-    if(!maker){
+    if (!maker) {
 
       return res.status(404).json({
-
-        error:"Maker not found"
-
+        error: "Maker not found"
       });
 
     }
 
 
-
     res.json(maker);
 
-
-
-  } catch(error) {
-
+  } catch (error) {
 
     console.error(
       "GET MAKER ERROR:",
       error
     );
 
-
     res.status(500).json({
-
-      error:String(error)
-
+      error: String(error)
     });
-
 
   }
 
-
 });
-
-
-
-
-
-
-
 
 
 // ==========================
 // CREATE MAKER
 // ==========================
 
-router.post("/", async(req,res)=>{
+router.post(
+  "/",
+  upload.single("image"),
+  async (req, res) => {
+
+    try {
+
+      console.log(
+        "CREATE MAKER BODY:",
+        req.body
+      );
 
 
-  try {
+      const file =
+        req.file;
 
 
-    console.log(
-      "CREATE MAKER BODY:",
-      req.body
-    );
+      const image =
+        file
+          ? `/uploads/${file.filename}`
+          : req.body.image || null;
 
 
+      const maker =
+        await prisma.maker.create({
 
-    const maker =
-      await prisma.maker.create({
+          data: {
 
-        data:{
+            name:
+              req.body.name,
 
+            slug:
+              req.body.slug,
 
-          name:
-          req.body.name,
+            country:
+              req.body.country || null,
 
+            bio:
+              req.body.bio || null,
 
+            image,
 
-          slug:
-          req.body.slug,
+            website:
+              req.body.website || null,
 
+            instagram:
+              req.body.instagram || null
 
+          }
 
-          country:
-          req.body.country || null,
-
-
-
-          bio:
-          req.body.bio || null,
-
-
-
-          image:
-          req.body.image || null,
-
+        });
 
 
-          website:
-          req.body.website || null,
+      res.json(maker);
 
+    } catch (error) {
 
+      console.error(
+        "CREATE MAKER ERROR:",
+        error
+      );
 
-          instagram:
-          req.body.instagram || null
-
-
-
-        }
-
-
+      res.status(500).json({
+        error: String(error)
       });
 
-
-
-
-
-    res.json(maker);
-
-
-
-  } catch(error) {
-
-
-    console.error(
-      "CREATE MAKER ERROR:",
-      error
-    );
-
-
-
-    res.status(500).json({
-
-      error:String(error)
-
-    });
-
-
+    }
 
   }
-
-
-});
-
-
-
-
-
-
-
+);
 
 
 // ==========================
 // UPDATE MAKER
 // ==========================
 
-router.put("/:id", async(req,res)=>{
+router.put(
+  "/:id",
+  upload.single("image"),
+  async (req, res) => {
+
+    try {
+
+      const makerId =
+        Array.isArray(req.params.id)
+          ? req.params.id[0]
+          : req.params.id;
 
 
-  try {
+      const existingMaker =
+        await prisma.maker.findUnique({
+
+          where: {
+            id: makerId
+          }
+
+        });
 
 
-    const maker =
-      await prisma.maker.update({
+      if (!existingMaker) {
 
-        where:{
+        return res.status(404).json({
+          error: "Maker not found"
+        });
 
-          id:req.params.id
-
-        },
-
-
-        data:{
+      }
 
 
-          name:
-          req.body.name,
+      const file =
+        req.file;
 
 
-
-          slug:
-          req.body.slug,
-
+      let image =
+        existingMaker.image;
 
 
-          country:
-          req.body.country || null,
+      // New uploaded image
+      if (file) {
+
+        image =
+          `/uploads/${file.filename}`;
 
 
+        // Delete old image
+        if (existingMaker.image) {
 
-          bio:
-          req.body.bio || null,
+          try {
 
-
-
-          image:
-          req.body.image || null,
-
-
-
-          website:
-          req.body.website || null,
+            const oldPath =
+              path.join(
+                __dirname,
+                "../../",
+                existingMaker.image
+              );
 
 
+            if (fs.existsSync(oldPath)) {
 
-          instagram:
-          req.body.instagram || null
+              fs.unlinkSync(oldPath);
 
+            }
 
+          } catch (error) {
+
+            console.error(
+              "OLD MAKER IMAGE DELETE ERROR:",
+              error
+            );
+
+          }
 
         }
 
+      }
 
+
+      // Allow explicit image value
+      if (
+        !file &&
+        req.body.image !== undefined
+      ) {
+
+        image =
+          req.body.image || null;
+
+      }
+
+
+      const maker =
+        await prisma.maker.update({
+
+          where: {
+
+            id: makerId
+
+          },
+
+          data: {
+
+            name:
+              req.body.name,
+
+            slug:
+              req.body.slug,
+
+            country:
+              req.body.country || null,
+
+            bio:
+              req.body.bio || null,
+
+            image,
+
+            website:
+              req.body.website || null,
+
+            instagram:
+              req.body.instagram || null
+
+          }
+
+        });
+
+
+      res.json(maker);
+
+    } catch (error) {
+
+      console.error(
+        "UPDATE MAKER ERROR:",
+        error
+      );
+
+      res.status(500).json({
+        error: String(error)
       });
 
-
-
-    res.json(maker);
-
-
-
-  } catch(error) {
-
-
-    console.error(
-      "UPDATE MAKER ERROR:",
-      error
-    );
-
-
-
-    res.status(500).json({
-
-      error:String(error)
-
-    });
-
-
+    }
 
   }
-
-
-});
-
-
-
-
-
-
-
+);
 
 
 // ==========================
 // DELETE MAKER
 // ==========================
 
-router.delete("/:id", async(req,res)=>{
-
+router.delete("/:id", async (req, res) => {
 
   try {
+
+    const makerId =
+      Array.isArray(req.params.id)
+        ? req.params.id[0]
+        : req.params.id;
+
+
+    const maker =
+      await prisma.maker.findUnique({
+
+        where: {
+          id: makerId
+        }
+
+      });
+
+
+    if (!maker) {
+
+      return res.status(404).json({
+        error: "Maker not found"
+      });
+
+    }
+
+
+    // Delete maker image
+    if (maker.image) {
+
+      try {
+
+        const imagePath =
+          path.join(
+            __dirname,
+            "../../",
+            maker.image
+          );
+
+
+        if (fs.existsSync(imagePath)) {
+
+          fs.unlinkSync(imagePath);
+
+        }
+
+      } catch (error) {
+
+        console.error(
+          "MAKER IMAGE DELETE ERROR:",
+          error
+        );
+
+      }
+
+    }
 
 
     await prisma.maker.delete({
 
-      where:{
+      where: {
 
-        id:req.params.id
+        id: makerId
 
       }
 
     });
 
 
-
     res.json({
 
-      message:"Maker deleted"
+      message: "Maker deleted"
 
     });
 
-
-
-  } catch(error) {
-
+  } catch (error) {
 
     console.error(
       "DELETE MAKER ERROR:",
       error
     );
 
-
-
     res.status(500).json({
 
-      error:String(error)
+      error: String(error)
 
     });
 
-
   }
 
-
 });
-
-
-
-
-
-
-
 
 
 export default router;
