@@ -171,7 +171,7 @@ text-lg
 
 The craftsmen behind Ågane.
 Exploring the stories, traditions and
-bladesmiths shaping Japanese knife culture.
+bladesmiths shaping the knife culture.
 
 </p>
 

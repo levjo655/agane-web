@@ -1,7 +1,15 @@
 import { Routes, Route } from "react-router-dom";
 
 import Home from "./pages/Home";
-import AvailableKnives from "./pages/AvailableKnives";
+import Shop from "./pages/Shop";
+import KnifeDetail from "./pages/KnifeDetail";
+
+import Collaborations from "./pages/Collaborations";
+import CollaborationDetail from "./pages/CollaborationDetail";
+
+import Makers from "./pages/Makers";
+import MakerDetail from "./pages/MakerDetail";
+
 import Admin from "./pages/Admin";
 import Login from "./pages/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -12,13 +20,6 @@ import EditKnife from "./pages/EditKnife";
 import NewCollaboration from "./pages/NewCollaboration";
 import EditCollaboration from "./pages/EditCollaboration";
 
-import Collection from "./pages/Collection";
-import KnifeDetail from "./pages/KnifeDetail";
-
-import Collaborations from "./pages/Collaborations";
-
-import MakerProfile from "./pages/MakerProfile";
-import Makers from "./pages/Makers";
 import NewMaker from "./pages/NewMaker";
 
 import Navbar from "./components/Navbar";
@@ -34,11 +35,11 @@ function App() {
 
       <Routes>
 
-
         {/* ==================================================
             PUBLIC
         ================================================== */}
 
+        {/* HOME */}
 
         <Route
           path="/"
@@ -46,11 +47,25 @@ function App() {
         />
 
 
+        {/* SHOP / COLLECTION */}
+
         <Route
-          path="/collection"
-          element={<Collection />}
+          path="/shop"
+          element={<Shop />}
         />
 
+        <Route
+          path="/shop/:slug"
+          element={<KnifeDetail />}
+        />
+
+
+        {/* Optional backwards-compatible collection routes */}
+
+        <Route
+          path="/collection"
+          element={<Shop />}
+        />
 
         <Route
           path="/collection/:slug"
@@ -58,29 +73,39 @@ function App() {
         />
 
 
-        <Route
-          path="/knives"
-          element={<AvailableKnives />}
-        />
-
+        {/* ==================================================
+            COLLABORATIONS
+        ================================================== */}
 
         <Route
           path="/collaborations"
           element={<Collaborations />}
         />
 
+        <Route
+          path="/collaborations/:id"
+          element={<CollaborationDetail />}
+        />
+
+
+        {/* ==================================================
+            MAKERS
+        ================================================== */}
 
         <Route
           path="/makers"
           element={<Makers />}
         />
 
-
         <Route
-          path="/makers/:maker"
-          element={<MakerProfile />}
+          path="/makers/:slug"
+          element={<MakerDetail />}
         />
 
+
+        {/* ==================================================
+            LOGIN
+        ================================================== */}
 
         <Route
           path="/login"
@@ -88,11 +113,9 @@ function App() {
         />
 
 
-
         {/* ==================================================
-            ADMIN DASHBOARD
+            ADMIN
         ================================================== */}
-
 
         <Route
           path="/admin"
@@ -104,11 +127,9 @@ function App() {
         />
 
 
-
         {/* ==================================================
             ADMIN — KNIVES
         ================================================== */}
-
 
         <Route
           path="/admin/new"
@@ -118,7 +139,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-
 
         <Route
           path="/admin/knife/:id/edit"
@@ -130,11 +150,9 @@ function App() {
         />
 
 
-
         {/* ==================================================
             ADMIN — MAKERS
         ================================================== */}
-
 
         <Route
           path="/admin/makers"
@@ -145,7 +163,6 @@ function App() {
           }
         />
 
-
         <Route
           path="/admin/maker/new"
           element={
@@ -155,9 +172,7 @@ function App() {
           }
         />
 
-
-        {/* Keep this route too in case something currently
-            links to /admin/makers/new */}
+        {/* Backwards compatible */}
 
         <Route
           path="/admin/makers/new"
@@ -169,11 +184,9 @@ function App() {
         />
 
 
-
         {/* ==================================================
             ADMIN — COLLABORATIONS
         ================================================== */}
-
 
         <Route
           path="/admin/collaboration/new"
@@ -184,7 +197,6 @@ function App() {
           }
         />
 
-
         <Route
           path="/admin/collaboration/:id/edit"
           element={
@@ -193,7 +205,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-
 
       </Routes>
 

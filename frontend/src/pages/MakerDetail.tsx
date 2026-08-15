@@ -68,6 +68,9 @@ type Collaboration = {
 };
 
 
+
+
+
 export default function MakerDetail() {
 
 
@@ -93,6 +96,9 @@ export default function MakerDetail() {
 
   const [error, setError] =
     useState("");
+
+
+
 
 
   // ==========================
@@ -160,6 +166,7 @@ export default function MakerDetail() {
 
       } finally {
 
+
         setLoading(false);
 
       }
@@ -177,11 +184,15 @@ export default function MakerDetail() {
   }, [slug]);
 
 
+
+
+
   // ==========================
   // LOADING
   // ==========================
 
   if (loading) {
+
 
     return (
 
@@ -203,11 +214,15 @@ export default function MakerDetail() {
   }
 
 
+
+
+
   // ==========================
   // ERROR
   // ==========================
 
   if (error || !maker) {
+
 
     return (
 
@@ -218,12 +233,10 @@ export default function MakerDetail() {
         flex
         items-center
         justify-center
-        px-6
       ">
 
-        <div className="
-          text-center
-        ">
+        <div className="text-center">
+
 
           <h1 className="
             text-5xl
@@ -236,7 +249,7 @@ export default function MakerDetail() {
 
 
           <Link
-            to="/makers"
+            to="/shop"
             className="
               inline-block
               mt-8
@@ -249,9 +262,10 @@ export default function MakerDetail() {
             "
           >
 
-            ← Back to Makers
+            Back to Shop
 
           </Link>
+
 
         </div>
 
@@ -260,6 +274,9 @@ export default function MakerDetail() {
     );
 
   }
+
+
+
 
 
   return (
@@ -333,6 +350,8 @@ export default function MakerDetail() {
           </div>
 
 
+
+
           {/* INFORMATION */}
 
           <div>
@@ -393,7 +412,7 @@ export default function MakerDetail() {
             )}
 
 
-            {/* EXTERNAL LINKS */}
+            {/* LINKS */}
 
             <div className="
               mt-10
@@ -457,6 +476,9 @@ export default function MakerDetail() {
         </section>
 
 
+
+
+
         {/* ==========================
             KNIVES
         ========================== */}
@@ -485,7 +507,7 @@ export default function MakerDetail() {
                   opacity-50
                 ">
 
-                  Knives
+                  Shop
 
                 </p>
 
@@ -516,6 +538,8 @@ export default function MakerDetail() {
             </div>
 
 
+
+
             <div className="
               grid
               md:grid-cols-3
@@ -535,8 +559,6 @@ export default function MakerDetail() {
                   "
                 >
 
-
-                  {/* IMAGE */}
 
                   <Link
                     to={`/shop/${knife.slug}`}
@@ -580,9 +602,7 @@ export default function MakerDetail() {
                   </Link>
 
 
-                  <div className="
-                    p-7
-                  ">
+                  <div className="p-7">
 
 
                     <p className="
@@ -605,8 +625,6 @@ export default function MakerDetail() {
                         text-3xl
                         font-serif
                         mt-3
-                        hover:opacity-60
-                        transition
                       ">
 
                         {knife.title}
@@ -638,12 +656,11 @@ export default function MakerDetail() {
                       justify-between
                     ">
 
-
                       <span>
 
                         {knife.status === "available"
                           ? `${knife.price} SEK`
-                          : knife.status.toUpperCase()
+                          : "SOLD"
                         }
 
                       </span>
@@ -659,7 +676,6 @@ export default function MakerDetail() {
                         View →
 
                       </Link>
-
 
                     </div>
 
@@ -680,6 +696,9 @@ export default function MakerDetail() {
         )}
 
 
+
+
+
         {/* ==========================
             COLLABORATIONS
         ========================== */}
@@ -691,10 +710,7 @@ export default function MakerDetail() {
           ">
 
 
-            <div className="
-              mb-10
-            ">
-
+            <div className="mb-10">
 
               <p className="
                 text-xs
@@ -718,8 +734,9 @@ export default function MakerDetail() {
 
               </h2>
 
-
             </div>
+
+
 
 
             <div className="
@@ -731,116 +748,136 @@ export default function MakerDetail() {
 
               {collaborations.map(collab => (
 
-                <article
+                <Link
                   key={collab.id}
-                  className="
-                    bg-white
-                    border
-                    overflow-hidden
-                  "
+                  to={`/collaborations/${collab.id}`}
+                  className="block group"
                 >
 
+                  <article
+                    className="
+                      bg-white
+                      border
+                      overflow-hidden
+                    "
+                  >
 
-                  {collab.image && (
 
-                    <img
-                      src={
-                        `http://localhost:8080${collab.image}`
-                      }
-                      alt={collab.title}
-                      className="
+                    {collab.image ? (
+
+                      <img
+                        src={
+                          `http://localhost:8080${collab.image}`
+                        }
+                        alt={collab.title}
+                        className="
+                          w-full
+                          h-80
+                          object-cover
+                          group-hover:scale-105
+                          transition
+                          duration-500
+                        "
+                      />
+
+                    ) : (
+
+                      <div className="
                         w-full
                         h-80
-                        object-cover
-                      "
-                    />
-
-                  )}
-
-
-                  <div className="
-                    p-8
-                  ">
-
-
-                    <p className="
-                      text-xs
-                      uppercase
-                      tracking-[0.25em]
-                      opacity-50
-                    ">
-
-                      {collab.status}
-
-                    </p>
-
-
-                    <h3 className="
-                      text-3xl
-                      font-serif
-                      mt-3
-                    ">
-
-                      {collab.title}
-
-                    </h3>
-
-
-                    {collab.description && (
-
-                      <p className="
-                        mt-5
-                        opacity-70
-                        leading-relaxed
+                        flex
+                        items-center
+                        justify-center
+                        bg-agane-bg
+                        opacity-50
                       ">
 
-                        {collab.description}
+                        No image
 
-                      </p>
+                      </div>
 
                     )}
 
 
-                    <div className="
-                      mt-6
-                      border-t
-                      pt-5
-                      flex
-                      justify-between
-                    ">
+                    <div className="p-8">
 
 
-                      <span>
+                      <p className="
+                        text-xs
+                        uppercase
+                        tracking-[0.25em]
+                        opacity-50
+                      ">
 
-                        {collab.quantity} pieces
+                        {collab.status}
 
-                      </span>
+                      </p>
 
 
-                      {collab.releaseDate && (
+                      <h3 className="
+                        text-3xl
+                        font-serif
+                        mt-3
+                      ">
 
-                        <span className="
-                          opacity-60
+                        {collab.title}
+
+                      </h3>
+
+
+                      {collab.description && (
+
+                        <p className="
+                          mt-5
+                          opacity-70
+                          leading-relaxed
                         ">
 
-                          {new Date(
-                            collab.releaseDate
-                          ).toLocaleDateString(
-                            "en-GB"
-                          )}
+                          {collab.description}
+
+                        </p>
+
+                      )}
+
+
+                      <div className="
+                        mt-6
+                        border-t
+                        pt-5
+                        flex
+                        justify-between
+                      ">
+
+                        <span>
+
+                          {collab.quantity} pieces
 
                         </span>
 
-                      )}
+
+                        {collab.releaseDate && (
+
+                          <span className="opacity-60">
+
+                            {new Date(
+                              collab.releaseDate
+                            ).toLocaleDateString(
+                              "en-GB"
+                            )}
+
+                          </span>
+
+                        )}
+
+                      </div>
 
 
                     </div>
 
 
-                  </div>
+                  </article>
 
-
-                </article>
+                </Link>
 
               ))}
 
@@ -851,6 +888,9 @@ export default function MakerDetail() {
           </section>
 
         )}
+
+
+
 
 
       </div>
