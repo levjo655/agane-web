@@ -90,15 +90,20 @@ export default function KnifeDetail() {
     useState(false);
 
 
-  // ==========================
+  // ==================================================
   // LOAD KNIFE
-  // ==========================
+  // ==================================================
 
   useEffect(() => {
 
     async function loadKnife() {
 
       try {
+
+        setLoading(true);
+
+        setError("");
+
 
         const response =
           await fetch(
@@ -121,10 +126,17 @@ export default function KnifeDetail() {
 
         setKnife(data);
 
+
+        // Reset gallery when navigating
+        // between different knives
+
+        setActiveImage(0);
+
+
       } catch (error) {
 
         console.error(
-          "KNIFE DETAIL ERROR",
+          "KNIFE DETAIL ERROR:",
           error
         );
 
@@ -132,6 +144,7 @@ export default function KnifeDetail() {
         setError(
           "Failed loading knife"
         );
+
 
       } finally {
 
@@ -151,13 +164,24 @@ export default function KnifeDetail() {
   }, [slug]);
 
 
-  // ==========================
+  // ==================================================
   // STRIPE CHECKOUT
-  // ==========================
+  // ==================================================
 
   async function handleCheckout() {
 
     if (!knife) {
+
+      return;
+
+    }
+
+
+    // Extra frontend protection
+
+    if (
+      knife.status !== "available"
+    ) {
 
       return;
 
@@ -176,7 +200,10 @@ export default function KnifeDetail() {
             method: "POST",
 
             headers: {
-              "Content-Type": "application/json"
+
+              "Content-Type":
+                "application/json"
+
             },
 
             body: JSON.stringify({
@@ -213,7 +240,9 @@ export default function KnifeDetail() {
       }
 
 
-      // Redirect customer to Stripe
+      // ==================================================
+      // REDIRECT TO STRIPE
+      // ==================================================
 
       window.location.href =
         data.url;
@@ -228,13 +257,13 @@ export default function KnifeDetail() {
 
 
       alert(
+
         error instanceof Error
           ? error.message
-          : "Unable to start checkout"
+          : "Unable to start checkout. Please try again."
+
       );
 
-
-    } finally {
 
       setCheckoutLoading(false);
 
@@ -243,9 +272,9 @@ export default function KnifeDetail() {
   }
 
 
-  // ==========================
+  // ==================================================
   // LOADING
-  // ==========================
+  // ==================================================
 
   if (loading) {
 
@@ -260,7 +289,31 @@ export default function KnifeDetail() {
         text-agane-text
       ">
 
-        Loading knife...
+        <div className="
+          text-center
+        ">
+
+          <p className="
+            text-xs
+            uppercase
+            tracking-[0.35em]
+            opacity-40
+          ">
+
+            Ågane
+
+          </p>
+
+
+          <p className="
+            mt-4
+          ">
+
+            Loading knife...
+
+          </p>
+
+        </div>
 
       </main>
 
@@ -269,9 +322,9 @@ export default function KnifeDetail() {
   }
 
 
-  // ==========================
+  // ==================================================
   // ERROR
-  // ==========================
+  // ==================================================
 
   if (error || !knife) {
 
@@ -359,9 +412,9 @@ export default function KnifeDetail() {
       ">
 
 
-        {/* ==========================
+        {/* ==================================================
             BACK TO SHOP
-        ========================== */}
+        ================================================== */}
 
         <Link
           to="/shop"
@@ -380,9 +433,9 @@ export default function KnifeDetail() {
         </Link>
 
 
-        {/* ==========================
+        {/* ==================================================
             KNIFE HERO
-        ========================== */}
+        ================================================== */}
 
         <section className="
           grid
@@ -392,9 +445,9 @@ export default function KnifeDetail() {
         ">
 
 
-          {/* ==========================
+          {/* ==================================================
               IMAGE GALLERY
-          ========================== */}
+          ================================================== */}
 
           <div>
 
@@ -413,7 +466,9 @@ export default function KnifeDetail() {
                   src={
                     `http://localhost:8080${knife.images[activeImage]}`
                   }
-                  alt={knife.title}
+                  alt={
+                    knife.title
+                  }
                   className="
                     w-full
                     h-[700px]
@@ -441,7 +496,9 @@ export default function KnifeDetail() {
             </div>
 
 
-            {/* THUMBNAILS */}
+            {/* ==================================================
+                THUMBNAILS
+            ================================================== */}
 
             {knife.images &&
               knife.images.length > 1 && (
@@ -457,7 +514,7 @@ export default function KnifeDetail() {
                   (image, index) => (
 
                     <button
-                      key={image}
+                      key={`${image}-${index}`}
                       type="button"
                       onClick={() =>
                         setActiveImage(index)
@@ -500,12 +557,14 @@ export default function KnifeDetail() {
           </div>
 
 
-          {/* ==========================
+          {/* ==================================================
               INFORMATION
-          ========================== */}
+          ================================================== */}
 
           <div>
 
+
+            {/* CATEGORY */}
 
             <p className="
               text-xs
@@ -519,6 +578,8 @@ export default function KnifeDetail() {
             </p>
 
 
+            {/* TITLE */}
+
             <h1 className="
               text-6xl
               font-serif
@@ -531,9 +592,9 @@ export default function KnifeDetail() {
             </h1>
 
 
-            {/* ==========================
+            {/* ==================================================
                 MAKER
-            ========================== */}
+            ================================================== */}
 
             {knife.maker && (
 
@@ -574,9 +635,9 @@ export default function KnifeDetail() {
             )}
 
 
-            {/* ==========================
+            {/* ==================================================
                 PRICE / STATUS
-            ========================== */}
+            ================================================== */}
 
             <div className="
               mt-10
@@ -593,8 +654,11 @@ export default function KnifeDetail() {
               ">
 
                 {knife.status === "available"
+
                   ? `${knife.price} SEK`
+
                   : knife.status.toUpperCase()
+
                 }
 
               </span>
@@ -615,9 +679,9 @@ export default function KnifeDetail() {
             </div>
 
 
-            {/* ==========================
+            {/* ==================================================
                 DESCRIPTION
-            ========================== */}
+            ================================================== */}
 
             {knife.description && (
 
@@ -640,9 +704,9 @@ export default function KnifeDetail() {
             )}
 
 
-            {/* ==========================
-                SPECS
-            ========================== */}
+            {/* ==================================================
+                SPECIFICATIONS
+            ================================================== */}
 
             <div className="
               mt-12
@@ -663,6 +727,8 @@ export default function KnifeDetail() {
               </p>
 
 
+              {/* STEEL */}
+
               {knife.steel && (
 
                 <div className="
@@ -672,18 +738,26 @@ export default function KnifeDetail() {
                   py-4
                 ">
 
-                  <span className="opacity-50">
+                  <span className="
+                    opacity-50
+                  ">
+
                     Steel
+
                   </span>
 
                   <span>
+
                     {knife.steel}
+
                   </span>
 
                 </div>
 
               )}
 
+
+              {/* ORIGIN */}
 
               {knife.origin && (
 
@@ -694,18 +768,26 @@ export default function KnifeDetail() {
                   py-4
                 ">
 
-                  <span className="opacity-50">
+                  <span className="
+                    opacity-50
+                  ">
+
                     Origin
+
                   </span>
 
                   <span>
+
                     {knife.origin}
+
                   </span>
 
                 </div>
 
               )}
 
+
+              {/* BLADE */}
 
               {knife.bladeType && (
 
@@ -716,18 +798,26 @@ export default function KnifeDetail() {
                   py-4
                 ">
 
-                  <span className="opacity-50">
+                  <span className="
+                    opacity-50
+                  ">
+
                     Blade
+
                   </span>
 
                   <span>
+
                     {knife.bladeType}
+
                   </span>
 
                 </div>
 
               )}
 
+
+              {/* LENGTH */}
 
               {knife.length && (
 
@@ -738,18 +828,26 @@ export default function KnifeDetail() {
                   py-4
                 ">
 
-                  <span className="opacity-50">
+                  <span className="
+                    opacity-50
+                  ">
+
                     Length
+
                   </span>
 
                   <span>
+
                     {knife.length}
+
                   </span>
 
                 </div>
 
               )}
 
+
+              {/* HANDLE */}
 
               {knife.handle && (
 
@@ -760,18 +858,26 @@ export default function KnifeDetail() {
                   py-4
                 ">
 
-                  <span className="opacity-50">
+                  <span className="
+                    opacity-50
+                  ">
+
                     Handle
+
                   </span>
 
                   <span>
+
                     {knife.handle}
+
                   </span>
 
                 </div>
 
               )}
 
+
+              {/* WEIGHT */}
 
               {knife.weight !== undefined &&
                 knife.weight !== null && (
@@ -783,12 +889,18 @@ export default function KnifeDetail() {
                   py-4
                 ">
 
-                  <span className="opacity-50">
+                  <span className="
+                    opacity-50
+                  ">
+
                     Weight
+
                   </span>
 
                   <span>
+
                     {knife.weight} g
+
                   </span>
 
                 </div>
@@ -798,11 +910,11 @@ export default function KnifeDetail() {
             </div>
 
 
-            {/* ==========================
+            {/* ==================================================
                 PURCHASE
-            ========================== */}
+            ================================================== */}
 
-            {knife.status === "available" && (
+            {knife.status === "available" ? (
 
               <div className="
                 mt-10
@@ -832,11 +944,48 @@ export default function KnifeDetail() {
                 >
 
                   {checkoutLoading
+
                     ? "Redirecting to Checkout..."
-                    : "Purchase This Knife"
+
+                    : `Purchase This Knife — ${knife.price} SEK`
+
                   }
 
                 </button>
+
+
+                <p className="
+                  text-xs
+                  text-center
+                  opacity-40
+                  mt-4
+                ">
+
+                  Secure checkout powered by Stripe
+
+                </p>
+
+              </div>
+
+            ) : (
+
+              <div className="
+                mt-10
+                border
+                py-5
+                text-center
+              ">
+
+                <p className="
+                  text-sm
+                  uppercase
+                  tracking-[0.25em]
+                  opacity-60
+                ">
+
+                  This knife is no longer available
+
+                </p>
 
               </div>
 
@@ -849,9 +998,9 @@ export default function KnifeDetail() {
         </section>
 
 
-        {/* ==========================
+        {/* ==================================================
             MAKER SECTION
-        ========================== */}
+        ================================================== */}
 
         {knife.maker && (
 
@@ -870,7 +1019,9 @@ export default function KnifeDetail() {
             ">
 
 
-              {/* MAKER IMAGE */}
+              {/* ==================================================
+                  MAKER IMAGE
+              ================================================== */}
 
               {knife.maker.image ? (
 
@@ -915,7 +1066,9 @@ export default function KnifeDetail() {
               )}
 
 
-              {/* MAKER INFO */}
+              {/* ==================================================
+                  MAKER INFO
+              ================================================== */}
 
               <div>
 

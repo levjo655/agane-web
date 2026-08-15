@@ -1,4 +1,7 @@
-import { Routes, Route } from "react-router-dom";
+import {
+  Routes,
+  Route
+} from "react-router-dom";
 
 import Home from "./pages/Home";
 import Shop from "./pages/Shop";
@@ -16,12 +19,14 @@ import ProtectedRoute from "./components/ProtectedRoute";
 
 import NewKnife from "./pages/NewKnife";
 import EditKnife from "./pages/EditKnife";
+
+import NewMaker from "./pages/NewMaker";
 import EditMaker from "./pages/EditMaker";
 
 import NewCollaboration from "./pages/NewCollaboration";
 import EditCollaboration from "./pages/EditCollaboration";
 
-import NewMaker from "./pages/NewMaker";
+import PaymentSuccess from "./pages/PaymentSuccess";
 
 import Navbar from "./components/Navbar";
 
@@ -32,45 +37,72 @@ function App() {
 
     <>
 
+      {/* ==========================
+          NAVBAR
+      ========================== */}
+
       <Navbar />
 
+
+      {/* ==========================
+          ROUTES
+      ========================== */}
+
       <Routes>
+
 
         {/* ==================================================
             PUBLIC
         ================================================== */}
 
+
         {/* HOME */}
 
         <Route
           path="/"
-          element={<Home />}
+          element={
+            <Home />
+          }
         />
 
 
-        {/* SHOP / COLLECTION */}
+        {/* ==================================================
+            SHOP
+        ================================================== */}
 
         <Route
           path="/shop"
-          element={<Shop />}
+          element={
+            <Shop />
+          }
         />
+
 
         <Route
           path="/shop/:slug"
-          element={<KnifeDetail />}
+          element={
+            <KnifeDetail />
+          }
         />
 
 
-        {/* Optional backwards-compatible collection routes */}
+        {/* ==================================================
+            BACKWARDS COMPATIBLE COLLECTION
+        ================================================== */}
 
         <Route
           path="/collection"
-          element={<Shop />}
+          element={
+            <Shop />
+          }
         />
+
 
         <Route
           path="/collection/:slug"
-          element={<KnifeDetail />}
+          element={
+            <KnifeDetail />
+          }
         />
 
 
@@ -80,12 +112,17 @@ function App() {
 
         <Route
           path="/collaborations"
-          element={<Collaborations />}
+          element={
+            <Collaborations />
+          }
         />
+
 
         <Route
           path="/collaborations/:id"
-          element={<CollaborationDetail />}
+          element={
+            <CollaborationDetail />
+          }
         />
 
 
@@ -95,12 +132,17 @@ function App() {
 
         <Route
           path="/makers"
-          element={<Makers />}
+          element={
+            <Makers />
+          }
         />
+
 
         <Route
           path="/makers/:slug"
-          element={<MakerDetail />}
+          element={
+            <MakerDetail />
+          }
         />
 
 
@@ -110,7 +152,21 @@ function App() {
 
         <Route
           path="/login"
-          element={<Login />}
+          element={
+            <Login />
+          }
+        />
+
+
+        {/* ==================================================
+            PAYMENT
+        ================================================== */}
+
+        <Route
+          path="/payment/success"
+          element={
+            <PaymentSuccess />
+          }
         />
 
 
@@ -140,14 +196,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route
-  path="/admin/maker/:id/edit"
-  element={
-    <ProtectedRoute>
-      <EditMaker />
-    </ProtectedRoute>
-  }
-/>
+
 
         <Route
           path="/admin/knife/:id/edit"
@@ -164,15 +213,6 @@ function App() {
         ================================================== */}
 
         <Route
-          path="/admin/makers"
-          element={
-            <ProtectedRoute>
-              <Makers />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
           path="/admin/maker/new"
           element={
             <ProtectedRoute>
@@ -181,6 +221,17 @@ function App() {
           }
         />
 
+
+        <Route
+          path="/admin/maker/:id/edit"
+          element={
+            <ProtectedRoute>
+              <EditMaker />
+            </ProtectedRoute>
+          }
+        />
+
+
         {/* Backwards compatible */}
 
         <Route
@@ -188,6 +239,20 @@ function App() {
           element={
             <ProtectedRoute>
               <NewMaker />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* ==================================================
+            ADMIN — MAKERS LIST
+        ================================================== */}
+
+        <Route
+          path="/admin/makers"
+          element={
+            <ProtectedRoute>
+              <Makers />
             </ProtectedRoute>
           }
         />
@@ -206,6 +271,7 @@ function App() {
           }
         />
 
+
         <Route
           path="/admin/collaboration/:id/edit"
           element={
@@ -214,6 +280,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+
 
       </Routes>
 
