@@ -86,6 +86,10 @@ export default function KnifeDetail() {
     useState(0);
 
 
+  const [checkoutLoading, setCheckoutLoading] =
+    useState(false);
+
+
   // ==========================
   // LOAD KNIFE
   // ==========================
@@ -145,6 +149,98 @@ export default function KnifeDetail() {
     }
 
   }, [slug]);
+
+
+  // ==========================
+  // STRIPE CHECKOUT
+  // ==========================
+
+  async function handleCheckout() {
+
+    if (!knife) {
+
+      return;
+
+    }
+
+
+    try {
+
+      setCheckoutLoading(true);
+
+
+      const response =
+        await fetch(
+          "http://localhost:8080/api/stripe/create-checkout",
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+
+              knifeId:
+                knife.id
+
+            })
+
+          }
+        );
+
+
+      const data =
+        await response.json();
+
+
+      if (!response.ok) {
+
+        throw new Error(
+          data.error ||
+          "Failed creating checkout"
+        );
+
+      }
+
+
+      if (!data.url) {
+
+        throw new Error(
+          "Stripe checkout URL missing"
+        );
+
+      }
+
+
+      // Redirect customer to Stripe
+
+      window.location.href =
+        data.url;
+
+
+    } catch (error) {
+
+      console.error(
+        "CHECKOUT ERROR:",
+        error
+      );
+
+
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Unable to start checkout"
+      );
+
+
+    } finally {
+
+      setCheckoutLoading(false);
+
+    }
+
+  }
 
 
   // ==========================
@@ -314,9 +410,9 @@ export default function KnifeDetail() {
               {knife.images?.length > 0 ? (
 
                 <img
-                  src={`
-                    http://localhost:8080${knife.images[activeImage]}
-                  `}
+                  src={
+                    `http://localhost:8080${knife.images[activeImage]}`
+                  }
                   alt={knife.title}
                   className="
                     w-full
@@ -379,10 +475,12 @@ export default function KnifeDetail() {
                     >
 
                       <img
-                        src={`
-                          http://localhost:8080${image}
-                        `}
-                        alt={`${knife.title} ${index + 1}`}
+                        src={
+                          `http://localhost:8080${image}`
+                        }
+                        alt={
+                          `${knife.title} ${index + 1}`
+                        }
                         className="
                           w-full
                           h-28
@@ -433,7 +531,9 @@ export default function KnifeDetail() {
             </h1>
 
 
-            {/* MAKER */}
+            {/* ==========================
+                MAKER
+            ========================== */}
 
             {knife.maker && (
 
@@ -474,7 +574,9 @@ export default function KnifeDetail() {
             )}
 
 
-            {/* PRICE / STATUS */}
+            {/* ==========================
+                PRICE / STATUS
+            ========================== */}
 
             <div className="
               mt-10
@@ -513,7 +615,9 @@ export default function KnifeDetail() {
             </div>
 
 
-            {/* DESCRIPTION */}
+            {/* ==========================
+                DESCRIPTION
+            ========================== */}
 
             {knife.description && (
 
@@ -706,6 +810,12 @@ export default function KnifeDetail() {
 
                 <button
                   type="button"
+                  onClick={
+                    handleCheckout
+                  }
+                  disabled={
+                    checkoutLoading
+                  }
                   className="
                     w-full
                     bg-black
@@ -716,10 +826,15 @@ export default function KnifeDetail() {
                     text-sm
                     hover:opacity-80
                     transition
+                    disabled:opacity-50
+                    disabled:cursor-not-allowed
                   "
                 >
 
-                  Inquire About This Knife
+                  {checkoutLoading
+                    ? "Redirecting to Checkout..."
+                    : "Purchase This Knife"
+                  }
 
                 </button>
 
@@ -766,10 +881,12 @@ export default function KnifeDetail() {
                 ">
 
                   <img
-                    src={`
-                      http://localhost:8080${knife.maker.image}
-                    `}
-                    alt={knife.maker.name}
+                    src={
+                      `http://localhost:8080${knife.maker.image}`
+                    }
+                    alt={
+                      knife.maker.name
+                    }
                     className="
                       w-full
                       h-[500px]
