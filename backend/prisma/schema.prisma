@@ -7,6 +7,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
+// ==================================================
+// MAKER
+// ==================================================
+
 model Maker {
   id             String          @id @default(uuid())
   name           String
@@ -17,9 +22,15 @@ model Maker {
   website        String?
   instagram      String?
   createdAt      DateTime        @default(now())
+
   collaborations Collaboration[]
   knives         Knife[]
 }
+
+
+// ==================================================
+// KNIFE
+// ==================================================
 
 model Knife {
   id          String   @id @default(uuid())
@@ -36,10 +47,17 @@ model Knife {
   images      Json
   createdAt   DateTime @default(now())
   status      String   @default("available")
+
   makerId     String?
   maker       Maker?   @relation(fields: [makerId], references: [id])
+
   order       Order?
 }
+
+
+// ==================================================
+// SHARPENING SUPPLY
+// ==================================================
 
 model SharpeningSupply {
   id String @id @default(uuid())
@@ -63,31 +81,72 @@ model SharpeningSupply {
   createdAt DateTime @default(now())
 }
 
+
+// ==================================================
+// ORDER
+// ==================================================
+
 model Order {
-  id                 String            @id @default(uuid())
-  knifeId            String?           @unique
-  stripeSessionId    String            @unique
-  customerEmail      String?
-  customerName       String?
-  amount             Int
-  currency           String            @default("sek")
-  status             String            @default("pending")
-  createdAt          DateTime          @default(now())
+  id String @id @default(uuid())
+
+  // ------------------------------------------
+  // KNIFE
+  // ------------------------------------------
+
+  knifeId String? @unique
+
+  knife Knife? @relation(
+    fields: [knifeId],
+    references: [id]
+  )
+
+
+  // ------------------------------------------
+  // SHARPENING SUPPLY
+  // ------------------------------------------
+
   sharpeningSupplyId String?
 
-  knife              Knife?            @relation(fields: [knifeId], references: [id])
-  sharpeningSupply   SharpeningSupply? @relation(fields: [sharpeningSupplyId], references: [id])
-}
+  sharpeningSupply SharpeningSupply? @relation(
+    fields: [sharpeningSupplyId],
+    references: [id]
+  )
 
-model Collaboration {
-  id          String    @id @default(uuid())
-  title       String
-  description String?
-  quantity    Int
-  status      String    @default("upcoming")
-  releaseDate DateTime?
-  image       String?
-  createdAt   DateTime  @default(now())
-  makerId     String?
-  maker       Maker?    @relation(fields: [makerId], references: [id])
+
+  // ------------------------------------------
+  // QUANTITY
+  // ------------------------------------------
+
+  quantity Int @default(1)
+
+
+  // ------------------------------------------
+  // STRIPE
+  // ------------------------------------------
+
+  stripeSessionId String @unique
+
+
+  // ------------------------------------------
+  // CUSTOMER
+  // ------------------------------------------
+
+  customerEmail String?
+  customerName  String?
+
+
+  // ------------------------------------------
+  // PAYMENT
+  // ------------------------------------------
+
+  amount   Int
+  currency String @default("sek")
+  status   String @default("pending")
+
+
+  // ------------------------------------------
+  // TIMESTAMP
+  // ------------------------------------------
+
+  createdAt DateTime @default(now())
 }
