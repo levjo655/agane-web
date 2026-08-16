@@ -22,10 +22,6 @@ router.post(
       const { knifeId } = req.body;
 
 
-      // ------------------------------------------
-      // VALIDATE KNIFE ID
-      // ------------------------------------------
-
       if (!knifeId) {
 
         return res.status(400).json({
@@ -121,7 +117,9 @@ router.post(
                 },
 
                 unit_amount:
-                  knife.price * 100
+                  Math.round(
+                    knife.price * 100
+                  )
 
               },
 
@@ -209,19 +207,20 @@ router.post(
       // VALIDATE QUANTITY
       // ------------------------------------------
 
-      const requestedQuantity =
-        Number(quantity);
+      const purchaseQuantity =
+        quantity !== undefined &&
+        quantity !== "" &&
+        !isNaN(Number(quantity))
+          ? Math.floor(Number(quantity))
+          : 1;
 
 
       if (
-        !Number.isInteger(
-          requestedQuantity
-        ) ||
-        requestedQuantity < 1
+        purchaseQuantity < 1
       ) {
 
         return res.status(400).json({
-          error: "A valid quantity is required"
+          error: "Quantity must be at least 1"
         });
 
       }
@@ -270,18 +269,13 @@ router.post(
       // ------------------------------------------
 
       if (
-        requestedQuantity >
-        supply.stock
+        purchaseQuantity > supply.stock
       ) {
 
         return res.status(400).json({
 
           error:
-            `Only ${supply.stock} unit${
-              supply.stock === 1
-                ? ""
-                : "s"
-            } available`
+            `Only ${supply.stock} available`
 
         });
 
@@ -320,7 +314,29 @@ router.post(
 
 
       // ------------------------------------------
-      // CREATE STRIPE CHECKOUT
+      // TOTAL
+      // ------------------------------------------
+
+      const total =
+        supply.price *
+        purchaseQuantity;
+
+
+      console.log(
+        `Supply: ${supply.title}`
+      );
+
+      console.log(
+        `Quantity: ${purchaseQuantity}`
+      );
+
+      console.log(
+        `Total: ${total} SEK`
+      );
+
+
+      // ------------------------------------------
+      // CREATE STRIPE SESSION
       // ------------------------------------------
 
       const session =
@@ -348,12 +364,14 @@ router.post(
                 },
 
                 unit_amount:
-                  supply.price * 100
+                  Math.round(
+                    supply.price * 100
+                  )
 
               },
 
               quantity:
-                requestedQuantity
+                purchaseQuantity
 
             }
 
@@ -374,9 +392,7 @@ router.post(
               supply.id,
 
             quantity:
-              String(
-                requestedQuantity
-              )
+              purchaseQuantity.toString()
 
           }
 
@@ -385,24 +401,6 @@ router.post(
 
       console.log(
         `Stripe supply checkout created: ${session.id}`
-      );
-
-
-      console.log(
-        `Supply: ${supply.title}`
-      );
-
-
-      console.log(
-        `Quantity: ${requestedQuantity}`
-      );
-
-
-      console.log(
-        `Total: ${
-          supply.price *
-          requestedQuantity
-        } SEK`
       );
 
 
@@ -438,9 +436,7 @@ router.get(
     try {
 
       const sessionId =
-        Array.isArray(
-          req.params.sessionId
-        )
+        Array.isArray(req.params.sessionId)
           ? req.params.sessionId[0]
           : req.params.sessionId;
 
@@ -488,6 +484,13 @@ router.get(
           session.metadata?.supplyId;
 
 
+        const quantity =
+          Number(
+            session.metadata?.quantity ||
+            1
+          );
+
+
         if (!supplyId) {
 
           return res.status(400).json({
@@ -516,13 +519,6 @@ router.get(
             }
 
           });
-
-
-        const quantity =
-          Number(
-            session.metadata?.quantity ||
-            1
-          );
 
 
         return res.json({
@@ -796,6 +792,18 @@ router.post(
           session.metadata?.supplyId;
 
 
+        const purchaseQuantity =
+          Number(
+            session.metadata?.quantity ||
+            1
+          );
+
+
+        console.log(
+          `Supply purchase quantity: ${purchaseQuantity}`
+        );
+
+
         if (!supplyId) {
 
           console.error(
@@ -810,25 +818,19 @@ router.post(
 
 
         // ------------------------------------------
-        // GET QUANTITY FROM STRIPE METADATA
+        // VALIDATE QUANTITY
         // ------------------------------------------
-
-        const quantity =
-          Number(
-            session.metadata?.quantity ||
-            1
-          );
-
 
         if (
           !Number.isInteger(
-            quantity
+            purchaseQuantity
           ) ||
-          quantity < 1
+          purchaseQuantity < 1
         ) {
 
           console.error(
-            `Invalid quantity in Stripe session ${session.id}`
+            "Invalid supply purchase quantity:",
+            purchaseQuantity
           );
 
           return res.json({
@@ -836,11 +838,6 @@ router.post(
           });
 
         }
-
-
-        console.log(
-          `Supply purchase quantity: ${quantity}`
-        );
 
 
         // ------------------------------------------
@@ -909,17 +906,12 @@ router.post(
                 // --------------------------------------
 
                 if (
-                  supply.stock < quantity
+                  supply.stock <
+                  purchaseQuantity
                 ) {
 
                   throw new Error(
-
-                    `Not enough stock. Available: ${
-                      supply.stock
-                    }, requested: ${
-                      quantity
-                    }`
-
+                    `Insufficient stock. Available: ${supply.stock}, requested: ${purchaseQuantity}`
                   );
 
                 }
@@ -931,7 +923,7 @@ router.post(
 
                 const newStock =
                   supply.stock -
-                  quantity;
+                  purchaseQuantity;
 
 
                 const newStatus =
@@ -940,17 +932,11 @@ router.post(
                     : "available";
 
 
-                // --------------------------------------
-                // UPDATE STOCK
-                // --------------------------------------
-
                 await tx.sharpeningSupply.update({
 
                   where: {
-
                     id:
                       supply.id
-
                   },
 
                   data: {
@@ -992,7 +978,7 @@ router.post(
                       amount:
                         session.amount_total ||
                         supply.price *
-                        quantity *
+                        purchaseQuantity *
                         100,
 
                       currency:
@@ -1011,9 +997,7 @@ router.post(
 
                   order,
 
-                  newStock,
-
-                  quantity
+                  newStock
 
                 };
 
@@ -1027,7 +1011,7 @@ router.post(
 
 
           console.log(
-            `Supply ${supplyId} quantity purchased: ${result.quantity}`
+            `Supply ${supplyId} quantity purchased: ${purchaseQuantity}`
           );
 
 
@@ -1055,8 +1039,9 @@ router.post(
           );
 
           /*
-           * We return 200 so Stripe does not
-           * endlessly retry the webhook.
+           * We return 200 here so Stripe does not
+           * continuously retry an event that cannot
+           * be fulfilled.
            */
 
           return res.json({
@@ -1275,8 +1260,9 @@ router.post(
      * payment_intent.created
      * payment_intent.succeeded
      * charge.updated
+     * mandate.updated
      *
-     * Nothing needs to be done here.
+     * We don't need to do anything with these.
      */
 
 
@@ -1335,6 +1321,100 @@ router.get(
 
       return res.status(500).json({
         error: "Failed fetching orders"
+      });
+
+    }
+
+  }
+);
+
+
+// ==================================================
+// DELETE ORDER
+// ==================================================
+
+router.delete(
+  "/orders/:id",
+  async (req, res) => {
+
+    try {
+
+      const orderId =
+        Array.isArray(req.params.id)
+          ? req.params.id[0]
+          : req.params.id;
+
+
+      if (!orderId) {
+
+        return res.status(400).json({
+          error: "Order ID is required"
+        });
+
+      }
+
+
+      // ------------------------------------------
+      // FIND ORDER
+      // ------------------------------------------
+
+      const order =
+        await prisma.order.findUnique({
+
+          where: {
+            id: orderId
+          }
+
+        });
+
+
+      if (!order) {
+
+        return res.status(404).json({
+          error: "Order not found"
+        });
+
+      }
+
+
+      // ------------------------------------------
+      // DELETE ORDER
+      // ------------------------------------------
+
+      await prisma.order.delete({
+
+        where: {
+          id: orderId
+        }
+
+      });
+
+
+      console.log(
+        `ORDER DELETED: ${orderId}`
+      );
+
+
+      return res.json({
+
+        message:
+          "Order deleted successfully"
+
+      });
+
+    } catch (error) {
+
+      console.error(
+        "DELETE ORDER ERROR:",
+        error
+      );
+
+
+      return res.status(500).json({
+
+        error:
+          "Failed deleting order"
+
       });
 
     }

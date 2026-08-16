@@ -599,6 +599,102 @@ export default function Admin() {
 
 
   // ==========================
+  // DELETE ORDER
+  // ==========================
+
+  async function deleteOrder(
+    id: string
+  ) {
+
+    if (
+      !confirm(
+        "Delete this order?\n\nThis only removes the order from Ågane. It does NOT refund the Stripe payment."
+      )
+    ) {
+
+      return;
+
+    }
+
+
+    try {
+
+      const response =
+        await fetch(
+
+          `http://localhost:8080/api/stripe/orders/${id}`,
+
+          {
+            method: "DELETE"
+          }
+
+        );
+
+
+      if (!response.ok) {
+
+        let message =
+          "Failed deleting order";
+
+
+        try {
+
+          const data =
+            await response.json();
+
+
+          if (data.error) {
+
+            message =
+              data.error;
+
+          }
+
+        } catch {
+
+          // Ignore JSON parsing error
+
+        }
+
+
+        throw new Error(
+          message
+        );
+
+      }
+
+
+      setOrders(
+        prev =>
+          prev.filter(
+            order =>
+              order.id !== id
+          )
+      );
+
+
+    } catch (error) {
+
+      console.error(
+        "DELETE ORDER ERROR",
+        error
+      );
+
+
+      alert(
+
+        error instanceof Error
+          ? error.message
+          : "Failed deleting order"
+
+      );
+
+    }
+
+  }
+
+
+  // ==========================
   // FORMAT ORDER DATE
   // ==========================
 
@@ -1022,6 +1118,36 @@ export default function Admin() {
                             {order.id}
 
                           </p>
+
+
+                          {/* DELETE ORDER */}
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              deleteOrder(
+                                order.id
+                              )
+                            }
+                            className="
+                              mt-5
+                              border
+                              border-red-600
+                              text-red-600
+                              px-4
+                              py-2
+                              text-xs
+                              uppercase
+                              tracking-widest
+                              hover:bg-red-600
+                              hover:text-white
+                              transition
+                            "
+                          >
+
+                            Delete Order
+
+                          </button>
 
                         </div>
 
