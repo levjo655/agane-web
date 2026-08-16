@@ -10,7 +10,7 @@ const stripe = new Stripe(
 
 
 // ==================================================
-// CREATE KNIFE CHECKOUT SESSION
+// CREATE KNIFE CHECKOUT
 // ==================================================
 
 router.post(
@@ -19,14 +19,7 @@ router.post(
 
     try {
 
-      const {
-        knifeId
-      } = req.body;
-
-
-      // ==========================
-      // VALIDATE KNIFE ID
-      // ==========================
+      const { knifeId } = req.body;
 
       if (!knifeId) {
 
@@ -36,20 +29,12 @@ router.post(
 
       }
 
-
-      // ==========================
-      // FIND KNIFE
-      // ==========================
-
       const knife =
         await prisma.knife.findUnique({
-
           where: {
             id: knifeId
           }
-
         });
-
 
       if (!knife) {
 
@@ -59,14 +44,7 @@ router.post(
 
       }
 
-
-      // ==========================
-      // CHECK AVAILABILITY
-      // ==========================
-
-      if (
-        knife.status !== "available"
-      ) {
+      if (knife.status !== "available") {
 
         return res.status(400).json({
           error: "This knife is no longer available"
@@ -74,20 +52,12 @@ router.post(
 
       }
 
-
-      // ==========================
-      // CHECK EXISTING ORDER
-      // ==========================
-
       const existingOrder =
         await prisma.order.findUnique({
-
           where: {
             knifeId: knife.id
           }
-
         });
-
 
       if (existingOrder) {
 
@@ -97,11 +67,6 @@ router.post(
 
       }
 
-
-      // ==========================
-      // CREATE STRIPE SESSION
-      // ==========================
-
       const session =
         await stripe.checkout.sessions.create({
 
@@ -110,15 +75,12 @@ router.post(
           line_items: [
 
             {
-
               price_data: {
 
                 currency: "sek",
 
                 product_data: {
-
                   name: knife.title
-
                 },
 
                 unit_amount:
@@ -142,26 +104,19 @@ router.post(
 
             type: "knife",
 
-            knifeId:
-              knife.id
+            knifeId: knife.id
 
           }
 
         });
 
-
       console.log(
         `Stripe knife checkout created: ${session.id}`
       );
 
-
-      res.json({
-
-        url:
-          session.url
-
+      return res.json({
+        url: session.url
       });
-
 
     } catch (error) {
 
@@ -170,12 +125,8 @@ router.post(
         error
       );
 
-
-      res.status(500).json({
-
-        error:
-          "Failed creating checkout"
-
+      return res.status(500).json({
+        error: "Failed creating checkout"
       });
 
     }
@@ -185,7 +136,7 @@ router.post(
 
 
 // ==================================================
-// CREATE SHARPENING SUPPLY CHECKOUT SESSION
+// CREATE SHARPENING SUPPLY CHECKOUT
 // ==================================================
 
 router.post(
@@ -194,77 +145,43 @@ router.post(
 
     try {
 
-      const {
-        supplyId
-      } = req.body;
-
-
-      // ==========================
-      // VALIDATE SUPPLY ID
-      // ==========================
+      const { supplyId } = req.body;
 
       if (!supplyId) {
 
         return res.status(400).json({
-
-          error:
-            "Supply ID is required"
-
+          error: "Supply ID is required"
         });
 
       }
-
-
-      // ==========================
-      // FIND SUPPLY
-      // ==========================
 
       const supply =
         await prisma.sharpeningSupply.findUnique({
 
           where: {
-
-            id:
-              supplyId
-
+            id: supplyId
           }
 
         });
 
-
       if (!supply) {
 
         return res.status(404).json({
-
-          error:
-            "Sharpening supply not found"
-
+          error: "Sharpening supply not found"
         });
 
       }
 
-
-      // ==========================
-      // CHECK AVAILABILITY
-      // ==========================
-
       if (
-        supply.status !== "available"
+        supply.status !== "available" ||
+        supply.stock <= 0
       ) {
 
         return res.status(400).json({
-
-          error:
-            "This product is no longer available"
-
+          error: "This product is currently out of stock"
         });
 
       }
-
-
-      // ==========================
-      // VALIDATE PRICE
-      // ==========================
 
       if (
         !supply.price ||
@@ -272,18 +189,10 @@ router.post(
       ) {
 
         return res.status(400).json({
-
-          error:
-            "This product has an invalid price"
-
+          error: "This product has an invalid price"
         });
 
       }
-
-
-      // ==========================
-      // CREATE STRIPE SESSION
-      // ==========================
 
       const session =
         await stripe.checkout.sessions.create({
@@ -300,8 +209,7 @@ router.post(
 
                 product_data: {
 
-                  name:
-                    supply.title,
+                  name: supply.title,
 
                   description:
                     supply.description ||
@@ -320,62 +228,29 @@ router.post(
 
           ],
 
-
-          // ==========================
-          // SUCCESS
-          // ==========================
-
           success_url:
             `http://localhost:5173/payment/success?session_id={CHECKOUT_SESSION_ID}`,
-
-
-          // ==========================
-          // CANCEL
-          // ==========================
 
           cancel_url:
             `http://localhost:5173/shop/${supply.slug}`,
 
-
-          // ==========================
-          // METADATA
-          // ==========================
-
           metadata: {
 
-            type:
-              "sharpening-supply",
+            type: "sharpening-supply",
 
-            supplyId:
-              supply.id
+            supplyId: supply.id
 
           }
 
         });
 
-
       console.log(
         `Stripe supply checkout created: ${session.id}`
       );
 
-
-      console.log(
-        `Supply: ${supply.title}`
-      );
-
-
-      console.log(
-        `Price: ${supply.price} SEK`
-      );
-
-
-      res.json({
-
-        url:
-          session.url
-
+      return res.json({
+        url: session.url
       });
-
 
     } catch (error) {
 
@@ -384,12 +259,8 @@ router.post(
         error
       );
 
-
-      res.status(500).json({
-
-        error:
-          "Failed creating supply checkout"
-
+      return res.status(500).json({
+        error: "Failed creating supply checkout"
       });
 
     }
@@ -413,50 +284,28 @@ router.get(
           ? req.params.sessionId[0]
           : req.params.sessionId;
 
-
       if (!sessionId) {
 
         return res.status(400).json({
-
-          error:
-            "Session ID is required"
-
+          error: "Session ID is required"
         });
 
       }
-
-
-      // ==========================
-      // GET STRIPE SESSION
-      // ==========================
 
       const session =
         await stripe.checkout.sessions.retrieve(
           sessionId
         );
 
-
-      // ==========================
-      // ONLY SHOW COMPLETED
-      // ==========================
-
       if (
         session.payment_status !== "paid"
       ) {
 
         return res.status(400).json({
-
-          error:
-            "Payment has not been completed"
-
+          error: "Payment has not been completed"
         });
 
       }
-
-
-      // ==========================
-      // DETERMINE PRODUCT TYPE
-      // ==========================
 
       const type =
         session.metadata?.type ||
@@ -464,7 +313,7 @@ router.get(
 
 
       // ==================================================
-      // SHARPENING SUPPLY
+      // SUPPLY
       // ==================================================
 
       if (
@@ -474,26 +323,31 @@ router.get(
         const supplyId =
           session.metadata?.supplyId;
 
+        if (!supplyId) {
 
-        let supply = null;
-
-
-        if (supplyId) {
-
-          supply =
-            await prisma.sharpeningSupply.findUnique({
-
-              where: {
-
-                id:
-                  supplyId
-
-              }
-
-            });
+          return res.status(400).json({
+            error: "Supply ID missing from payment"
+          });
 
         }
 
+        const supply =
+          await prisma.sharpeningSupply.findUnique({
+
+            where: {
+              id: supplyId
+            }
+
+          });
+
+        const order =
+          await prisma.order.findUnique({
+
+            where: {
+              stripeSessionId: session.id
+            }
+
+          });
 
         return res.json({
 
@@ -509,17 +363,21 @@ router.get(
               : 0,
 
           currency:
-            session.currency || "sek",
+            session.currency ||
+            "sek",
 
           customerEmail:
             session.customer_details?.email ||
+            order?.customerEmail ||
             null,
 
           customerName:
             session.customer_details?.name ||
+            order?.customerName ||
             null,
 
           orderId:
+            order?.id ||
             null,
 
           type:
@@ -542,7 +400,6 @@ router.get(
                     supply.images
 
                 }
-
               : null
 
         });
@@ -557,53 +414,29 @@ router.get(
       const knifeId =
         session.metadata?.knifeId;
 
+      const knife =
+        knifeId
+          ? await prisma.knife.findUnique({
 
-      let knife = null;
+              where: {
+                id: knifeId
+              },
 
+              include: {
+                maker: true
+              }
 
-      if (knifeId) {
-
-        knife =
-          await prisma.knife.findUnique({
-
-            where: {
-
-              id:
-                knifeId
-
-            },
-
-            include: {
-
-              maker: true
-
-            }
-
-          });
-
-      }
-
-
-      // ==========================
-      // GET ORDER
-      // ==========================
+            })
+          : null;
 
       const order =
         await prisma.order.findUnique({
 
           where: {
-
-            stripeSessionId:
-              session.id
-
+            stripeSessionId: session.id
           }
 
         });
-
-
-      // ==========================
-      // RETURN KNIFE DATA
-      // ==========================
 
       return res.json({
 
@@ -619,7 +452,8 @@ router.get(
             : 0,
 
         currency:
-          session.currency || "sek",
+          session.currency ||
+          "sek",
 
         customerEmail:
           session.customer_details?.email ||
@@ -639,7 +473,6 @@ router.get(
           "knife",
 
         knife:
-
           knife
             ? {
 
@@ -659,11 +492,9 @@ router.get(
                   knife.maker
 
               }
-
             : null
 
       });
-
 
     } catch (error) {
 
@@ -672,12 +503,8 @@ router.get(
         error
       );
 
-
-      res.status(500).json({
-
-        error:
-          "Failed loading payment"
-
+      return res.status(500).json({
+        error: "Failed loading payment"
       });
 
     }
@@ -695,14 +522,7 @@ router.post(
   async (req, res) => {
 
     const signature =
-      req.headers[
-        "stripe-signature"
-      ];
-
-
-    // ==========================
-    // CHECK SIGNATURE
-    // ==========================
+      req.headers["stripe-signature"];
 
     if (!signature) {
 
@@ -712,13 +532,7 @@ router.post(
 
     }
 
-
     let event: Stripe.Event;
-
-
-    // ==========================
-    // VERIFY EVENT
-    // ==========================
 
     try {
 
@@ -740,13 +554,11 @@ router.post(
         error
       );
 
-
       return res.status(400).send(
         "Invalid webhook signature"
       );
 
     }
-
 
     console.log(
       `Stripe event received: ${event.type}`
@@ -754,7 +566,7 @@ router.post(
 
 
     // ==================================================
-    // PAYMENT COMPLETED
+    // CHECKOUT COMPLETED
     // ==================================================
 
     if (
@@ -765,24 +577,17 @@ router.post(
       const session =
         event.data.object as Stripe.Checkout.Session;
 
-
-      console.log(
-        "STRIPE PAYMENT COMPLETED:",
-        session.id
-      );
-
-
-      // ==================================================
-      // DETERMINE PRODUCT TYPE
-      // ==================================================
-
       const type =
         session.metadata?.type ||
         "knife";
 
+      console.log(
+        `Payment completed: ${session.id}`
+      );
+
 
       // ==================================================
-      // SHARPENING SUPPLY PAYMENT
+      // SHARPENING SUPPLY
       // ==================================================
 
       if (
@@ -791,7 +596,6 @@ router.post(
 
         const supplyId =
           session.metadata?.supplyId;
-
 
         if (!supplyId) {
 
@@ -805,24 +609,19 @@ router.post(
 
         }
 
-
         const supply =
           await prisma.sharpeningSupply.findUnique({
 
             where: {
-
-              id:
-                supplyId
-
+              id: supplyId
             }
 
           });
 
-
         if (!supply) {
 
           console.error(
-            "Sharpening supply not found:",
+            "Supply not found:",
             supplyId
           );
 
@@ -833,51 +632,171 @@ router.post(
         }
 
 
-        // ==========================
-        // MARK SUPPLY SOLD OUT
-        // ==========================
+        // ------------------------------------------
+        // DUPLICATE WEBHOOK PROTECTION
+        // ------------------------------------------
 
-        await prisma.sharpeningSupply.update({
+        const existingOrder =
+          await prisma.order.findUnique({
 
-          where: {
+            where: {
+              stripeSessionId: session.id
+            }
 
-            id:
-              supply.id
+          });
 
-          },
+        if (existingOrder) {
 
-          data: {
+          console.log(
+            `Order already exists for session ${session.id}`
+          );
 
-            status:
-              "sold-out"
+          return res.json({
+            received: true
+          });
 
-          }
+        }
 
-        });
 
+        // ------------------------------------------
+        // CHECK STOCK
+        // ------------------------------------------
+
+        if (supply.stock <= 0) {
+
+          console.error(
+            `Supply ${supply.title} is out of stock`
+          );
+
+          return res.json({
+            received: true
+          });
+
+        }
+
+
+        // ------------------------------------------
+        // CREATE ORDER + REDUCE STOCK
+        // ------------------------------------------
+
+        const order =
+          await prisma.$transaction(
+            async (tx) => {
+
+              const updatedSupply =
+                await tx.sharpeningSupply.updateMany({
+
+                  where: {
+
+                    id: supply.id,
+
+                    stock: {
+                      gt: 0
+                    }
+
+                  },
+
+                  data: {
+
+                    stock: {
+                      decrement: 1
+                    }
+
+                  }
+
+                });
+
+              if (
+                updatedSupply.count !== 1
+              ) {
+
+                throw new Error(
+                  "Supply went out of stock"
+                );
+
+              }
+
+              const currentSupply =
+                await tx.sharpeningSupply.findUnique({
+
+                  where: {
+                    id: supply.id
+                  }
+
+                });
+
+              if (
+                currentSupply &&
+                currentSupply.stock === 0
+              ) {
+
+                await tx.sharpeningSupply.update({
+
+                  where: {
+                    id: supply.id
+                  },
+
+                  data: {
+                    status: "sold-out"
+                  }
+
+                });
+
+              }
+
+              return tx.order.create({
+
+                data: {
+
+                  sharpeningSupplyId:
+                    supply.id,
+
+                  stripeSessionId:
+                    session.id,
+
+                  customerEmail:
+                    session.customer_details?.email ||
+                    null,
+
+                  customerName:
+                    session.customer_details?.name ||
+                    null,
+
+                  amount:
+                    session.amount_total ||
+                    supply.price * 100,
+
+                  currency:
+                    session.currency ||
+                    "sek",
+
+                  status:
+                    "paid"
+
+                }
+
+              });
+
+            }
+          );
 
         console.log(
-          `Sharpening supply ${supply.title} marked as SOLD OUT`
+          `SUPPLY ORDER CREATED: ${order.id}`
         );
 
-
         return res.json({
-
-          received:
-            true
-
+          received: true
         });
 
       }
 
 
       // ==================================================
-      // KNIFE PAYMENT
+      // KNIFE
       // ==================================================
 
       const knifeId =
         session.metadata?.knifeId;
-
 
       if (!knifeId) {
 
@@ -886,31 +805,19 @@ router.post(
         );
 
         return res.json({
-
-          received:
-            true
-
+          received: true
         });
 
       }
-
-
-      // ==========================
-      // FIND KNIFE
-      // ==========================
 
       const knife =
         await prisma.knife.findUnique({
 
           where: {
-
-            id:
-              knifeId
-
+            id: knifeId
           }
 
         });
-
 
       if (!knife) {
 
@@ -920,71 +827,54 @@ router.post(
         );
 
         return res.json({
-
-          received:
-            true
-
+          received: true
         });
 
       }
 
 
-      // ==========================
-      // CHECK EXISTING SESSION
-      // ==========================
+      // ------------------------------------------
+      // DUPLICATE WEBHOOK PROTECTION
+      // ------------------------------------------
 
       const existingSessionOrder =
         await prisma.order.findUnique({
 
           where: {
-
             stripeSessionId:
               session.id
-
           }
 
         });
 
-
       if (existingSessionOrder) {
 
         console.log(
-          `Order already exists for Stripe session ${session.id}`
+          `Order already exists for ${session.id}`
         );
 
         return res.json({
-
-          received:
-            true
-
+          received: true
         });
 
       }
 
 
-      // ==========================
-      // CHECK KNIFE ORDER
-      // ==========================
-
       const existingKnifeOrder =
         await prisma.order.findUnique({
 
           where: {
-
             knifeId:
               knife.id
-
           }
 
         });
 
-
       if (existingKnifeOrder) {
 
         console.log(
-          `Knife ${knife.title} already has an order: ${existingKnifeOrder.id}`
+          `Knife already has order ${existingKnifeOrder.id}`
         );
-
 
         if (
           knife.status !== "sold"
@@ -993,69 +883,27 @@ router.post(
           await prisma.knife.update({
 
             where: {
-
-              id:
-                knife.id
-
+              id: knife.id
             },
 
             data: {
-
-              status:
-                "sold"
-
+              status: "sold"
             }
 
           });
 
         }
 
-
         return res.json({
-
-          received:
-            true
-
+          received: true
         });
 
       }
 
 
-      // ==========================
-      // CUSTOMER
-      // ==========================
-
-      const customerEmail =
-        session.customer_details?.email ||
-        null;
-
-
-      const customerName =
-        session.customer_details?.name ||
-        null;
-
-
-      // ==========================
-      // AMOUNT
-      // ==========================
-
-      const amount =
-        session.amount_total ||
-        knife.price * 100;
-
-
-      // ==========================
-      // CURRENCY
-      // ==========================
-
-      const currency =
-        session.currency ||
-        "sek";
-
-
-      // ==========================
-      // CREATE ORDER
-      // ==========================
+      // ------------------------------------------
+      // CREATE KNIFE ORDER
+      // ------------------------------------------
 
       const order =
         await prisma.order.create({
@@ -1069,16 +917,20 @@ router.post(
               session.id,
 
             customerEmail:
-              customerEmail,
+              session.customer_details?.email ||
+              null,
 
             customerName:
-              customerName,
+              session.customer_details?.name ||
+              null,
 
             amount:
-              amount,
+              session.amount_total ||
+              knife.price * 100,
 
             currency:
-              currency,
+              session.currency ||
+              "sek",
 
             status:
               "paid"
@@ -1087,51 +939,30 @@ router.post(
 
         });
 
-
-      console.log(
-        `ORDER CREATED: ${order.id}`
-      );
-
-
-      // ==========================
-      // MARK KNIFE SOLD
-      // ==========================
-
       await prisma.knife.update({
 
         where: {
-
-          id:
-            knife.id
-
+          id: knife.id
         },
 
         data: {
-
-          status:
-            "sold"
-
+          status: "sold"
         }
 
       });
 
+      console.log(
+        `KNIFE ORDER CREATED: ${order.id}`
+      );
 
       console.log(
-        `Knife ${knife.title} marked as SOLD`
+        `Knife ${knife.title} marked SOLD`
       );
 
     }
 
-
-    // ==================================================
-    // RETURN SUCCESS
-    // ==================================================
-
     return res.json({
-
-      received:
-        true
-
+      received: true
     });
 
   }
@@ -1156,29 +987,22 @@ router.get(
             knife: {
 
               include: {
-
-                maker:
-                  true
-
+                maker: true
               }
 
-            }
+            },
+
+            sharpeningSupply: true
 
           },
 
           orderBy: {
-
-            createdAt:
-              "desc"
-
+            createdAt: "desc"
           }
 
         });
 
-
-      res.json(
-        orders
-      );
+      return res.json(orders);
 
     } catch (error) {
 
@@ -1187,12 +1011,8 @@ router.get(
         error
       );
 
-
-      res.status(500).json({
-
-        error:
-          "Failed fetching orders"
-
+      return res.status(500).json({
+        error: "Failed fetching orders"
       });
 
     }

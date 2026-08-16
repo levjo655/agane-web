@@ -8,131 +8,85 @@ datasource db {
 }
 
 model Maker {
-  id String @id @default(uuid())
-
-  name String
-
-  slug String @unique
-
-  country String?
-
-  bio String?
-
-  image String?
-
-  website String?
-
-  instagram String?
-
-  knives Knife[]
-
+  id             String          @id @default(uuid())
+  name           String
+  slug           String          @unique
+  country        String?
+  bio            String?
+  image          String?
+  website        String?
+  instagram      String?
+  createdAt      DateTime        @default(now())
   collaborations Collaboration[]
-
-  createdAt DateTime @default(now())
+  knives         Knife[]
 }
 
 model Knife {
-  id String @id @default(uuid())
-
-  title String
-
-  slug String @unique
-
-  makerId String?
-
-  maker Maker? @relation(fields: [makerId], references: [id])
-
-  origin String?
-
-  steel String?
-
-  bladeType String?
-
-  length String?
-
-  handle String?
-
-  weight Float?
-
-  price Int
-
+  id          String   @id @default(uuid())
+  title       String
+  slug        String   @unique
+  origin      String?
+  steel       String?
+  bladeType   String?
+  length      String?
+  handle      String?
+  weight      Float?
+  price       Int
   description String?
-
-  images Json
-
-  status String @default("available")
-
-  order Order?
-
-  createdAt DateTime @default(now())
+  images      Json
+  createdAt   DateTime @default(now())
+  status      String   @default("available")
+  makerId     String?
+  maker       Maker?   @relation(fields: [makerId], references: [id])
+  order       Order?
 }
+
 model SharpeningSupply {
   id String @id @default(uuid())
 
   title String
+  slug  String @unique
 
-  slug String @unique
-
-  category String
-
+  category    String
   description String?
 
   price Int
+
+  stock Int @default(1)
 
   images Json
 
   status String @default("available")
 
-  order Order?
-
-  createdAt DateTime @default(now())
-}
-
-model Collaboration {
-  id String @id @default(uuid())
-
-  makerId String?
-
-  maker Maker? @relation(fields: [makerId], references: [id])
-
-  title String
-
-  description String?
-
-  quantity Int
-
-  status String @default("upcoming")
-
-  releaseDate DateTime?
-
-  image String?
+  orders Order[]
 
   createdAt DateTime @default(now())
 }
 
 model Order {
-  id String @id @default(uuid())
+  id                 String            @id @default(uuid())
+  knifeId            String?           @unique
+  stripeSessionId    String            @unique
+  customerEmail      String?
+  customerName       String?
+  amount             Int
+  currency           String            @default("sek")
+  status             String            @default("pending")
+  createdAt          DateTime          @default(now())
+  sharpeningSupplyId String?           @unique
+  knife              Knife?            @relation(fields: [knifeId], references: [id])
+  sharpeningSupply   SharpeningSupply? @relation(fields: [sharpeningSupplyId], references: [id])
+}
 
-  knifeId String? @unique
-  knife Knife? @relation(fields: [knifeId], references: [id])
-
-  sharpeningSupplyId String? @unique
-  sharpeningSupply SharpeningSupply? @relation(
-    fields: [sharpeningSupplyId],
-    references: [id]
-  )
-
-  stripeSessionId String @unique
-
-  customerEmail String?
-
-  customerName String?
-
-  amount Int
-
-  currency String @default("sek")
-
-  status String @default("pending")
-
-  createdAt DateTime @default(now())
+model Collaboration {
+  id          String    @id @default(uuid())
+  title       String
+  description String?
+  quantity    Int
+  status      String    @default("upcoming")
+  releaseDate DateTime?
+  image       String?
+  createdAt   DateTime  @default(now())
+  makerId     String?
+  maker       Maker?    @relation(fields: [makerId], references: [id])
 }

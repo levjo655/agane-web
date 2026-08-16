@@ -1,4 +1,3 @@
-
 import {
   useEffect,
   useState
@@ -57,6 +56,7 @@ type SharpeningSupply = {
   category: string;
   description?: string | null;
   price: number;
+  stock: number;
   images: string[];
   status: string;
   createdAt: string;
@@ -65,19 +65,28 @@ type SharpeningSupply = {
 
 type Order = {
   id: string;
-  knifeId: string;
+
+  knifeId?: string | null;
+
+  sharpeningSupplyId?: string | null;
+
   stripeSessionId: string;
 
   customerEmail?: string | null;
+
   customerName?: string | null;
 
   amount: number;
+
   currency: string;
+
   status: string;
 
   createdAt: string;
 
   knife?: Knife;
+
+  sharpeningSupply?: SharpeningSupply;
 };
 
 
@@ -147,7 +156,9 @@ export default function Admin() {
 
       if (Array.isArray(makersData)) {
 
-        setMakers(makersData);
+        setMakers(
+          makersData
+        );
 
       }
 
@@ -168,7 +179,9 @@ export default function Admin() {
 
       if (Array.isArray(knivesData)) {
 
-        setKnives(knivesData);
+        setKnives(
+          knivesData
+        );
 
       }
 
@@ -189,7 +202,9 @@ export default function Admin() {
 
       if (Array.isArray(collabData)) {
 
-        setCollaborations(collabData);
+        setCollaborations(
+          collabData
+        );
 
       }
 
@@ -233,7 +248,9 @@ export default function Admin() {
 
       if (Array.isArray(ordersData)) {
 
-        setOrders(ordersData);
+        setOrders(
+          ordersData
+        );
 
       }
 
@@ -327,11 +344,12 @@ export default function Admin() {
       }
 
 
-      setMakers(prev =>
-        prev.filter(
-          maker =>
-            maker.id !== id
-        )
+      setMakers(
+        prev =>
+          prev.filter(
+            maker =>
+              maker.id !== id
+          )
       );
 
 
@@ -394,11 +412,12 @@ export default function Admin() {
       }
 
 
-      setKnives(prev =>
-        prev.filter(
-          knife =>
-            knife.id !== id
-        )
+      setKnives(
+        prev =>
+          prev.filter(
+            knife =>
+              knife.id !== id
+          )
       );
 
 
@@ -461,11 +480,12 @@ export default function Admin() {
       }
 
 
-      setCollaborations(prev =>
-        prev.filter(
-          item =>
-            item.id !== id
-        )
+      setCollaborations(
+        prev =>
+          prev.filter(
+            item =>
+              item.id !== id
+          )
       );
 
 
@@ -552,11 +572,12 @@ export default function Admin() {
       }
 
 
-      setSharpeningSupplies(prev =>
-        prev.filter(
-          supply =>
-            supply.id !== id
-        )
+      setSharpeningSupplies(
+        prev =>
+          prev.filter(
+            supply =>
+              supply.id !== id
+          )
       );
 
 
@@ -761,143 +782,244 @@ export default function Admin() {
             ">
 
               {orders.map(
-                order => (
+                order => {
 
-                  <article
-                    key={order.id}
-                    className="
-                      bg-white
-                      border
-                      p-8
-                    "
-                  >
+                  const isKnife =
+                    !!order.knife;
 
-                    <div className="
-                      grid
-                      md:grid-cols-[180px_1fr_auto]
-                      gap-8
-                      items-center
-                    ">
 
-                      {/* IMAGE */}
+                  const isSupply =
+                    !!order.sharpeningSupply;
 
-                      <div>
 
-                        {order.knife?.images?.[0] ? (
+                  const title =
+                    order.knife?.title ||
+                    order.sharpeningSupply?.title ||
+                    "Unknown product";
 
-                          <img
-                            src={
-                              `http://localhost:8080${order.knife.images[0]}`
-                            }
-                            alt={
-                              order.knife.title
-                            }
-                            className="
+
+                  const image =
+                    order.knife?.images?.[0] ||
+                    order.sharpeningSupply?.images?.[0];
+
+
+                  const productType =
+                    isKnife
+                      ? "Knife"
+                      : isSupply
+                        ? "Sharpening Supply"
+                        : "Unknown";
+
+
+                  return (
+
+                    <article
+                      key={order.id}
+                      className="
+                        bg-white
+                        border
+                        p-8
+                      "
+                    >
+
+                      <div className="
+                        grid
+                        md:grid-cols-[180px_1fr_auto]
+                        gap-8
+                        items-center
+                      ">
+
+
+                        {/* IMAGE */}
+
+                        <div>
+
+                          {image ? (
+
+                            <img
+                              src={
+                                `http://localhost:8080${image}`
+                              }
+                              alt={title}
+                              className="
+                                w-full
+                                h-36
+                                object-cover
+                              "
+                            />
+
+                          ) : (
+
+                            <div className="
                               w-full
                               h-36
-                              object-cover
-                            "
-                          />
+                              bg-agane-bg
+                              flex
+                              items-center
+                              justify-center
+                              opacity-50
+                            ">
 
-                        ) : (
+                              No image
 
-                          <div className="
-                            w-full
-                            h-36
-                            bg-agane-bg
-                            flex
-                            items-center
-                            justify-center
+                            </div>
+
+                          )}
+
+                        </div>
+
+
+                        {/* ORDER INFORMATION */}
+
+                        <div>
+
+                          <p className="
+                            text-xs
+                            uppercase
+                            tracking-widest
                             opacity-50
                           ">
 
-                            No image
+                            {productType}
+
+                          </p>
+
+
+                          <h3 className="
+                            text-2xl
+                            font-serif
+                            mt-1
+                          ">
+
+                            {title}
+
+                          </h3>
+
+
+                          {isKnife && (
+
+                            <p className="
+                              mt-2
+                              opacity-70
+                            ">
+
+                              Maker:{" "}
+
+                              {order.knife?.maker?.name ||
+                                "Unknown"}
+
+                            </p>
+
+                          )}
+
+
+                          {isSupply && (
+
+                            <p className="
+                              mt-2
+                              opacity-70
+                            ">
+
+                              Category:{" "}
+
+                              {order.sharpeningSupply?.category ||
+                                "Unknown"}
+
+                            </p>
+
+                          )}
+
+
+                          <div className="
+                            mt-4
+                            space-y-1
+                            text-sm
+                          ">
+
+                            <p>
+
+                              Customer:{" "}
+
+                              <strong>
+
+                                {order.customerName ||
+                                  "No name"}
+
+                              </strong>
+
+                            </p>
+
+
+                            <p>
+
+                              Email:{" "}
+
+                              {order.customerEmail ||
+                                "No email"}
+
+                            </p>
+
+
+                            <p>
+
+                              Date:{" "}
+
+                              {formatDate(
+                                order.createdAt
+                              )}
+
+                            </p>
 
                           </div>
 
-                        )}
-
-                      </div>
+                        </div>
 
 
-                      {/* ORDER INFORMATION */}
-
-                      <div>
-
-                        <p className="
-                          text-xs
-                          uppercase
-                          tracking-widest
-                          opacity-50
-                        ">
-
-                          Order
-
-                        </p>
-
-
-                        <h3 className="
-                          text-2xl
-                          font-serif
-                          mt-1
-                        ">
-
-                          {order.knife?.title ||
-                            "Unknown knife"}
-
-                        </h3>
-
-
-                        <p className="
-                          mt-2
-                          opacity-70
-                        ">
-
-                          Maker:{" "}
-
-                          {order.knife?.maker?.name ||
-                            "Unknown"}
-
-                        </p>
-
+                        {/* PRICE / STATUS */}
 
                         <div className="
-                          mt-4
-                          space-y-1
-                          text-sm
+                          md:text-right
                         ">
 
-                          <p>
+                          <p className="
+                            text-3xl
+                            font-serif
+                          ">
 
-                            Customer:{" "}
+                            {(order.amount / 100)
+                              .toLocaleString(
+                                "sv-SE"
+                              )}{" "}
 
-                            <strong>
-
-                              {order.customerName ||
-                                "No name"}
-
-                            </strong>
-
-                          </p>
-
-
-                          <p>
-
-                            Email:{" "}
-
-                            {order.customerEmail ||
-                              "No email"}
+                            {order.currency.toUpperCase()}
 
                           </p>
 
 
-                          <p>
+                          <p className="
+                            mt-3
+                            inline-block
+                            border
+                            px-4
+                            py-2
+                            text-xs
+                            uppercase
+                            tracking-widest
+                          ">
 
-                            Date:{" "}
+                            {order.status}
 
-                            {formatDate(
-                              order.createdAt
-                            )}
+                          </p>
+
+
+                          <p className="
+                            mt-3
+                            text-xs
+                            opacity-40
+                            break-all
+                          ">
+
+                            {order.id}
 
                           </p>
 
@@ -906,78 +1028,27 @@ export default function Admin() {
                       </div>
 
 
-                      {/* PRICE / STATUS */}
+                      {/* STRIPE SESSION */}
 
                       <div className="
-                        md:text-right
+                        mt-6
+                        pt-6
+                        border-t
+                        text-xs
+                        opacity-40
+                        break-all
                       ">
 
-                        <p className="
-                          text-3xl
-                          font-serif
-                        ">
-
-                          {(order.amount / 100)
-                            .toLocaleString(
-                              "sv-SE"
-                            )}{" "}
-
-                          {order.currency.toUpperCase()}
-
-                        </p>
-
-
-                        <p className="
-                          mt-3
-                          inline-block
-                          border
-                          px-4
-                          py-2
-                          text-xs
-                          uppercase
-                          tracking-widest
-                        ">
-
-                          {order.status}
-
-                        </p>
-
-
-                        <p className="
-                          mt-3
-                          text-xs
-                          opacity-40
-                          break-all
-                        ">
-
-                          {order.id}
-
-                        </p>
+                        Stripe Session:{" "}
+                        {order.stripeSessionId}
 
                       </div>
 
-                    </div>
+                    </article>
 
+                  );
 
-                    {/* STRIPE SESSION */}
-
-                    <div className="
-                      mt-6
-                      pt-6
-                      border-t
-                      text-xs
-                      opacity-40
-                      break-all
-                    ">
-
-                      Stripe Session:{" "}
-                      {order.stripeSessionId}
-
-                    </div>
-
-                  </article>
-
-                )
+                }
               )}
 
             </div>
@@ -1808,6 +1879,23 @@ export default function Admin() {
                     </p>
 
 
+                    {/* STOCK */}
+
+                    <p className="
+                      mt-2
+                    ">
+
+                      Stock:{" "}
+
+                      <strong>
+
+                        {supply.stock}
+
+                      </strong>
+
+                    </p>
+
+
                     {/* STATUS */}
 
                     <p className="
@@ -1911,4 +1999,3 @@ export default function Admin() {
   );
 
 }
-
