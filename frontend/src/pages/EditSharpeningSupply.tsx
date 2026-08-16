@@ -1,14 +1,43 @@
 import {
   type FormEvent,
+  useEffect,
   useState
 } from "react";
 
 import {
-  useNavigate
+  useNavigate,
+  useParams
 } from "react-router-dom";
 
 
-export default function NewSharpeningSupply() {
+type SharpeningSupply = {
+
+  id: string;
+
+  slug: string;
+
+  title: string;
+
+  category: string;
+
+  price: number;
+
+  stock: number;
+
+  status: string;
+
+  description?: string;
+
+  images: string[];
+
+};
+
+
+export default function EditSharpeningSupply() {
+
+  const {
+    id
+  } = useParams();
 
   const navigate =
     useNavigate();
@@ -18,32 +47,173 @@ export default function NewSharpeningSupply() {
   // STATE
   // ==================================================
 
-  const [title, setTitle] =
-    useState("");
+  const [
+    title,
+    setTitle
+  ] = useState("");
 
-  const [category, setCategory] =
-    useState("stone");
+  const [
+    category,
+    setCategory
+  ] = useState("stone");
 
-  const [price, setPrice] =
-    useState("");
+  const [
+    price,
+    setPrice
+  ] = useState("");
 
-  const [stock, setStock] =
-    useState("1");
+  const [
+    stock,
+    setStock
+  ] = useState("1");
 
-  const [description, setDescription] =
-    useState("");
+  const [
+    description,
+    setDescription
+  ] = useState("");
 
-  const [status, setStatus] =
-    useState("available");
+  const [
+    status,
+    setStatus
+  ] = useState("available");
 
-  const [images, setImages] =
-    useState<File[]>([]);
+  const [
+    existingImages,
+    setExistingImages
+  ] = useState<string[]>([]);
 
-  const [loading, setLoading] =
-    useState(false);
+  const [
+    newImages,
+    setNewImages
+  ] = useState<File[]>([]);
 
-  const [error, setError] =
-    useState("");
+  const [
+    loading,
+    setLoading
+  ] = useState(true);
+
+  const [
+    saving,
+    setSaving
+  ] = useState(false);
+
+  const [
+    error,
+    setError
+  ] = useState("");
+
+
+  // ==================================================
+  // LOAD PRODUCT
+  // ==================================================
+
+  useEffect(() => {
+
+    async function loadSupply() {
+
+      if (!id) {
+
+        setError(
+          "Product ID is missing."
+        );
+
+        setLoading(false);
+
+        return;
+
+      }
+
+
+      try {
+
+        setLoading(true);
+
+        const response =
+          await fetch(
+            `http://localhost:8080/api/sharpening-supplies/${id}`
+          );
+
+
+        const data =
+          await response.json();
+
+
+        if (!response.ok) {
+
+          throw new Error(
+            data.error ||
+            "Failed loading product"
+          );
+
+        }
+
+
+        const supply:
+          SharpeningSupply =
+          data;
+
+
+        setTitle(
+          supply.title
+        );
+
+        setCategory(
+          supply.category
+        );
+
+        setPrice(
+          String(
+            supply.price ?? ""
+          )
+        );
+
+        setStock(
+          String(
+            supply.stock ?? 0
+          )
+        );
+
+        setDescription(
+          supply.description || ""
+        );
+
+        setStatus(
+          supply.status
+        );
+
+        setExistingImages(
+          supply.images || []
+        );
+
+
+      } catch (error) {
+
+        console.error(
+          "LOAD SHARPENING SUPPLY ERROR:",
+          error
+        );
+
+
+        setError(
+
+          error instanceof Error
+            ? error.message
+            : "Failed loading product"
+
+        );
+
+      } finally {
+
+        setLoading(false);
+
+      }
+
+    }
+
+
+    loadSupply();
+
+  }, [id]);
 
 
   // ==================================================
@@ -55,10 +225,13 @@ export default function NewSharpeningSupply() {
   ) {
 
     if (!event.target.files) {
+
       return;
+
     }
 
-    setImages(
+
+    setNewImages(
       Array.from(
         event.target.files
       )
@@ -67,8 +240,23 @@ export default function NewSharpeningSupply() {
   }
 
 
+  function removeExistingImage(
+    image: string
+  ) {
+
+    setExistingImages(
+      current =>
+        current.filter(
+          item =>
+            item !== image
+        )
+    );
+
+  }
+
+
   // ==================================================
-  // SUBMIT
+  // SAVE
   // ==================================================
 
   async function handleSubmit(
@@ -80,9 +268,16 @@ export default function NewSharpeningSupply() {
     setError("");
 
 
-    // ------------------------------------------
-    // VALIDATION
-    // ------------------------------------------
+    if (!id) {
+
+      setError(
+        "Product ID is missing."
+      );
+
+      return;
+
+    }
+
 
     if (!title.trim()) {
 
@@ -95,24 +290,12 @@ export default function NewSharpeningSupply() {
     }
 
 
-    if (!category) {
-
-      setError(
-        "Category is required."
-      );
-
-      return;
-
-    }
-
-
     const numericPrice =
       Number(price);
 
     if (
-      !price ||
       isNaN(numericPrice) ||
-      numericPrice <= 0
+      numericPrice < 0
     ) {
 
       setError(
@@ -129,11 +312,12 @@ export default function NewSharpeningSupply() {
 
     if (
       isNaN(numericStock) ||
-      numericStock < 0
+      numericStock < 0 ||
+      !Number.isInteger(numericStock)
     ) {
 
       setError(
-        "Please enter a valid stock quantity."
+        "Stock must be a whole number of 0 or greater."
       );
 
       return;
@@ -143,7 +327,7 @@ export default function NewSharpeningSupply() {
 
     try {
 
-      setLoading(true);
+      setSaving(true);
 
 
       const formData =
@@ -192,11 +376,19 @@ export default function NewSharpeningSupply() {
       );
 
 
+      formData.append(
+        "existingImages",
+        JSON.stringify(
+          existingImages
+        )
+      );
+
+
       // ------------------------------------------
-      // IMAGES
+      // NEW IMAGES
       // ------------------------------------------
 
-      images.forEach(
+      newImages.forEach(
         image => {
 
           formData.append(
@@ -209,14 +401,14 @@ export default function NewSharpeningSupply() {
 
 
       // ------------------------------------------
-      // SEND TO BACKEND
+      // SEND
       // ------------------------------------------
 
       const response =
         await fetch(
-          "http://localhost:8080/api/sharpening-supplies",
+          `http://localhost:8080/api/sharpening-supplies/${id}`,
           {
-            method: "POST",
+            method: "PUT",
             body: formData
           }
         );
@@ -230,14 +422,14 @@ export default function NewSharpeningSupply() {
 
         throw new Error(
           data.error ||
-          "Failed creating sharpening supply"
+          "Failed updating product"
         );
 
       }
 
 
       console.log(
-        "SHARPENING SUPPLY CREATED:",
+        "SHARPENING SUPPLY UPDATED:",
         data
       );
 
@@ -250,7 +442,7 @@ export default function NewSharpeningSupply() {
     } catch (error) {
 
       console.error(
-        "CREATE SHARPENING SUPPLY ERROR:",
+        "UPDATE SHARPENING SUPPLY ERROR:",
         error
       );
 
@@ -259,15 +451,118 @@ export default function NewSharpeningSupply() {
 
         error instanceof Error
           ? error.message
-          : "Failed creating sharpening supply"
+          : "Failed updating product"
 
       );
 
     } finally {
 
-      setLoading(false);
+      setSaving(false);
 
     }
+
+  }
+
+
+  // ==================================================
+  // LOADING
+  // ==================================================
+
+  if (loading) {
+
+    return (
+
+      <main className="
+        min-h-screen
+        bg-agane-bg
+        text-agane-text
+        flex
+        items-center
+        justify-center
+      ">
+
+        <div className="text-center">
+
+          <p className="
+            text-xs
+            uppercase
+            tracking-[0.35em]
+            opacity-50
+          ">
+
+            Ågane Workshop
+
+          </p>
+
+          <p className="mt-4">
+
+            Loading product...
+
+          </p>
+
+        </div>
+
+      </main>
+
+    );
+
+  }
+
+
+  // ==================================================
+  // ERROR
+  // ==================================================
+
+  if (error && !title) {
+
+    return (
+
+      <main className="
+        min-h-screen
+        bg-agane-bg
+        text-agane-text
+        flex
+        items-center
+        justify-center
+        px-6
+      ">
+
+        <div className="text-center">
+
+          <p className="
+            text-red-600
+            mb-6
+          ">
+
+            {error}
+
+          </p>
+
+
+          <button
+            type="button"
+            onClick={() =>
+              navigate("/admin")
+            }
+            className="
+              border
+              px-8
+              py-3
+              uppercase
+              tracking-[0.2em]
+              text-sm
+            "
+          >
+
+            ← Back to Admin
+
+          </button>
+
+        </div>
+
+      </main>
+
+    );
 
   }
 
@@ -292,13 +587,9 @@ export default function NewSharpeningSupply() {
       ">
 
 
-        {/* ==================================================
-            HEADER
-        ================================================== */}
+        {/* HEADER */}
 
-        <header className="
-          mb-12
-        ">
+        <header className="mb-12">
 
           <button
             type="button"
@@ -337,7 +628,7 @@ export default function NewSharpeningSupply() {
             mt-4
           ">
 
-            Add Sharpening Supply
+            Edit Sharpening Supply
 
           </h1>
 
@@ -347,17 +638,15 @@ export default function NewSharpeningSupply() {
             opacity-60
           ">
 
-            Add stones, rods, strops and other
-            sharpening equipment to the shop.
+            Update product information,
+            pricing, stock, availability and images.
 
           </p>
 
         </header>
 
 
-        {/* ==================================================
-            ERROR
-        ================================================== */}
+        {/* ERROR */}
 
         {error && (
 
@@ -376,9 +665,7 @@ export default function NewSharpeningSupply() {
         )}
 
 
-        {/* ==================================================
-            FORM
-        ================================================== */}
+        {/* FORM */}
 
         <form
           onSubmit={handleSubmit}
@@ -391,13 +678,9 @@ export default function NewSharpeningSupply() {
         >
 
 
-          {/* ==================================================
-              TITLE
-          ================================================== */}
+          {/* TITLE */}
 
-          <div className="
-            mb-8
-          ">
+          <div className="mb-8">
 
             <label className="
               block
@@ -421,7 +704,6 @@ export default function NewSharpeningSupply() {
                   event.target.value
                 )
               }
-              placeholder="Diamond Stone"
               className="
                 w-full
                 border
@@ -435,13 +717,9 @@ export default function NewSharpeningSupply() {
           </div>
 
 
-          {/* ==================================================
-              CATEGORY
-          ================================================== */}
+          {/* CATEGORY */}
 
-          <div className="
-            mb-8
-          ">
+          <div className="mb-8">
 
             <label className="
               block
@@ -508,13 +786,9 @@ export default function NewSharpeningSupply() {
           </div>
 
 
-          {/* ==================================================
-              PRICE
-          ================================================== */}
+          {/* PRICE */}
 
-          <div className="
-            mb-8
-          ">
+          <div className="mb-8">
 
             <label className="
               block
@@ -539,7 +813,6 @@ export default function NewSharpeningSupply() {
                   event.target.value
                 )
               }
-              placeholder="1995"
               className="
                 w-full
                 border
@@ -557,9 +830,7 @@ export default function NewSharpeningSupply() {
               STOCK
           ================================================== */}
 
-          <div className="
-            mb-8
-          ">
+          <div className="mb-8">
 
             <label className="
               block
@@ -585,7 +856,6 @@ export default function NewSharpeningSupply() {
                   event.target.value
                 )
               }
-              placeholder="1"
               className="
                 w-full
                 border
@@ -603,20 +873,16 @@ export default function NewSharpeningSupply() {
               opacity-50
             ">
 
-              Number of units available for purchase.
+              Number of units currently available.
 
             </p>
 
           </div>
 
 
-          {/* ==================================================
-              STATUS
-          ================================================== */}
+          {/* STATUS */}
 
-          <div className="
-            mb-8
-          ">
+          <div className="mb-8">
 
             <label className="
               block
@@ -671,13 +937,9 @@ export default function NewSharpeningSupply() {
           </div>
 
 
-          {/* ==================================================
-              DESCRIPTION
-          ================================================== */}
+          {/* DESCRIPTION */}
 
-          <div className="
-            mb-8
-          ">
+          <div className="mb-8">
 
             <label className="
               block
@@ -700,11 +962,7 @@ export default function NewSharpeningSupply() {
                   event.target.value
                 )
               }
-              rows={7}
-              placeholder="
-Describe the product, intended use,
-dimensions, grit, manufacturer, etc.
-              "
+              rows={8}
               className="
                 w-full
                 border
@@ -712,20 +970,105 @@ dimensions, grit, manufacturer, etc.
                 py-4
                 outline-none
                 resize-y
-                focus:border-black
               "
             />
 
           </div>
 
 
-          {/* ==================================================
-              IMAGES
-          ================================================== */}
+          {/* EXISTING IMAGES */}
 
-          <div className="
-            mb-10
-          ">
+          {existingImages.length > 0 && (
+
+            <div className="mb-10">
+
+              <label className="
+                block
+                text-xs
+                uppercase
+                tracking-[0.25em]
+                opacity-60
+                mb-3
+              ">
+
+                Current Images
+
+              </label>
+
+
+              <div className="
+                grid
+                grid-cols-2
+                md:grid-cols-4
+                gap-4
+              ">
+
+                {existingImages.map(
+                  (
+                    image,
+                    index
+                  ) => (
+
+                    <div
+                      key={`${image}-${index}`}
+                      className="
+                        relative
+                        border
+                        overflow-hidden
+                      "
+                    >
+
+                      <img
+                        src={
+                          `http://localhost:8080${image}`
+                        }
+                        alt={`${title} ${index + 1}`}
+                        className="
+                          w-full
+                          h-40
+                          object-cover
+                        "
+                      />
+
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          removeExistingImage(
+                            image
+                          )
+                        }
+                        className="
+                          absolute
+                          top-2
+                          right-2
+                          bg-black
+                          text-white
+                          px-3
+                          py-1
+                          text-xs
+                        "
+                      >
+
+                        Remove
+
+                      </button>
+
+                    </div>
+
+                  )
+                )}
+
+              </div>
+
+            </div>
+
+          )}
+
+
+          {/* NEW IMAGES */}
+
+          <div className="mb-10">
 
             <label className="
               block
@@ -736,7 +1079,7 @@ dimensions, grit, manufacturer, etc.
               mb-3
             ">
 
-              Product Images
+              Add New Images
 
             </label>
 
@@ -755,7 +1098,7 @@ dimensions, grit, manufacturer, etc.
             />
 
 
-            {images.length > 0 && (
+            {newImages.length > 0 && (
 
               <p className="
                 mt-3
@@ -763,8 +1106,8 @@ dimensions, grit, manufacturer, etc.
                 opacity-60
               ">
 
-                {images.length}{" "}
-                {images.length === 1
+                {newImages.length}{" "}
+                {newImages.length === 1
                   ? "image"
                   : "images"}{" "}
                 selected
@@ -776,9 +1119,7 @@ dimensions, grit, manufacturer, etc.
           </div>
 
 
-          {/* ==================================================
-              ACTIONS
-          ================================================== */}
+          {/* ACTIONS */}
 
           <div className="
             flex
@@ -789,7 +1130,7 @@ dimensions, grit, manufacturer, etc.
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={saving}
               className="
                 flex-1
                 bg-black
@@ -805,9 +1146,9 @@ dimensions, grit, manufacturer, etc.
               "
             >
 
-              {loading
-                ? "Creating..."
-                : "Create Supply"
+              {saving
+                ? "Saving..."
+                : "Save Changes"
               }
 
             </button>

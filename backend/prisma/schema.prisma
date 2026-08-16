@@ -73,7 +73,8 @@ model Order {
   currency           String            @default("sek")
   status             String            @default("pending")
   createdAt          DateTime          @default(now())
-  sharpeningSupplyId String?           @unique
+  sharpeningSupplyId String?
+
   knife              Knife?            @relation(fields: [knifeId], references: [id])
   sharpeningSupply   SharpeningSupply? @relation(fields: [sharpeningSupplyId], references: [id])
 }

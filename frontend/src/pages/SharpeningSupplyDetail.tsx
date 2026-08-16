@@ -1,4 +1,3 @@
-
 import {
   useEffect,
   useState
@@ -21,6 +20,8 @@ type SharpeningSupply = {
   category: string;
 
   price: number;
+
+  stock: number;
 
   status: string;
 
@@ -71,9 +72,9 @@ function formatCategory(
 
 export default function SharpeningSupplyDetail() {
 
-
-  const { slug } =
-    useParams();
+  const {
+    slug
+  } = useParams();
 
 
   const [
@@ -104,6 +105,13 @@ export default function SharpeningSupplyDetail() {
     setActiveImage
   ] =
     useState(0);
+
+
+  const [
+    quantity,
+    setQuantity
+  ] =
+    useState(1);
 
 
   const [
@@ -151,6 +159,8 @@ export default function SharpeningSupplyDetail() {
 
         setActiveImage(0);
 
+        setQuantity(1);
+
 
       } catch (error) {
 
@@ -184,6 +194,88 @@ export default function SharpeningSupplyDetail() {
 
 
   // ==================================================
+  // QUANTITY
+  // ==================================================
+
+  function decreaseQuantity() {
+
+    setQuantity(
+      current =>
+        Math.max(
+          1,
+          current - 1
+        )
+    );
+
+  }
+
+
+  function increaseQuantity() {
+
+    if (!supply) {
+
+      return;
+
+    }
+
+
+    setQuantity(
+      current =>
+        Math.min(
+          supply.stock,
+          current + 1
+        )
+    );
+
+  }
+
+
+  function handleQuantityChange(
+    value: string
+  ) {
+
+    if (!supply) {
+
+      return;
+
+    }
+
+
+    const numericValue =
+      Number(value);
+
+
+    if (
+      !Number.isFinite(
+        numericValue
+      )
+    ) {
+
+      return;
+
+    }
+
+
+    const newQuantity =
+      Math.min(
+        supply.stock,
+        Math.max(
+          1,
+          Math.floor(
+            numericValue
+          )
+        )
+      );
+
+
+    setQuantity(
+      newQuantity
+    );
+
+  }
+
+
+  // ==================================================
   // STRIPE CHECKOUT
   // ==================================================
 
@@ -199,6 +291,33 @@ export default function SharpeningSupplyDetail() {
     if (
       supply.status !== "available"
     ) {
+
+      return;
+
+    }
+
+
+    if (
+      supply.stock <= 0
+    ) {
+
+      alert(
+        "This product is currently out of stock."
+      );
+
+      return;
+
+    }
+
+
+    if (
+      quantity < 1 ||
+      quantity > supply.stock
+    ) {
+
+      alert(
+        "Please select a valid quantity."
+      );
 
       return;
 
@@ -226,7 +345,9 @@ export default function SharpeningSupplyDetail() {
             body: JSON.stringify({
 
               supplyId:
-                supply.id
+                supply.id,
+
+              quantity
 
             })
 
@@ -302,9 +423,7 @@ export default function SharpeningSupplyDetail() {
         text-agane-text
       ">
 
-        <div className="
-          text-center
-        ">
+        <div className="text-center">
 
           <p className="
             text-xs
@@ -318,9 +437,7 @@ export default function SharpeningSupplyDetail() {
           </p>
 
 
-          <p className="
-            mt-4
-          ">
+          <p className="mt-4">
 
             Loading product...
 
@@ -356,9 +473,7 @@ export default function SharpeningSupplyDetail() {
         px-6
       ">
 
-        <div className="
-          text-center
-        ">
+        <div className="text-center">
 
           <p className="
             text-xs
@@ -401,7 +516,6 @@ export default function SharpeningSupplyDetail() {
 
           </Link>
 
-
         </div>
 
       </main>
@@ -409,6 +523,10 @@ export default function SharpeningSupplyDetail() {
     );
 
   }
+
+
+  const totalPrice =
+    supply.price * quantity;
 
 
   return (
@@ -474,9 +592,7 @@ export default function SharpeningSupplyDetail() {
                   src={
                     `http://localhost:8080${supply.images[activeImage]}`
                   }
-                  alt={
-                    supply.title
-                  }
+                  alt={supply.title}
                   className="
                     w-full
                     h-[700px]
@@ -610,7 +726,7 @@ export default function SharpeningSupplyDetail() {
             </p>
 
 
-            {/* PRICE / STATUS */}
+            {/* PRICE / STOCK */}
 
             <div className="
               mt-10
@@ -621,19 +737,32 @@ export default function SharpeningSupplyDetail() {
               items-center
             ">
 
-              <span className="
-                text-2xl
-              ">
+              <div>
 
-                {supply.status === "available"
+                <span className="
+                  text-2xl
+                ">
 
-                  ? `${supply.price} SEK`
+                  {supply.price} SEK
 
-                  : supply.status.toUpperCase()
+                </span>
 
-                }
 
-              </span>
+                {supply.stock > 0 && (
+
+                  <p className="
+                    text-sm
+                    opacity-50
+                    mt-1
+                  ">
+
+                    {supply.stock} available
+
+                  </p>
+
+                )}
+
+              </div>
 
 
               <span className="
@@ -643,7 +772,10 @@ export default function SharpeningSupplyDetail() {
                 opacity-50
               ">
 
-                {supply.status}
+                {supply.stock > 0
+                  ? "Available"
+                  : "Sold Out"
+                }
 
               </span>
 
@@ -654,9 +786,7 @@ export default function SharpeningSupplyDetail() {
 
             {supply.description && (
 
-              <div className="
-                mt-10
-              ">
+              <div className="mt-10">
 
                 <p className="
                   leading-relaxed
@@ -673,13 +803,176 @@ export default function SharpeningSupplyDetail() {
             )}
 
 
-            {/* PURCHASE */}
+            {/* ==================================================
+                PURCHASE
+            ================================================== */}
 
-            {supply.status === "available" ? (
+            {supply.status === "available" &&
+              supply.stock > 0 ? (
 
-              <div className="
-                mt-10
-              ">
+              <div className="mt-10">
+
+
+                {/* QUANTITY */}
+
+                <div className="
+                  mb-6
+                ">
+
+                  <label className="
+                    block
+                    text-xs
+                    uppercase
+                    tracking-[0.25em]
+                    opacity-60
+                    mb-3
+                  ">
+
+                    Quantity
+
+                  </label>
+
+
+                  <div className="
+                    flex
+                    items-center
+                    border
+                    bg-white
+                  ">
+
+                    <button
+                      type="button"
+                      onClick={
+                        decreaseQuantity
+                      }
+                      disabled={
+                        quantity <= 1
+                      }
+                      className="
+                        w-16
+                        h-14
+                        text-xl
+                        hover:bg-black
+                        hover:text-white
+                        transition
+                        disabled:opacity-30
+                        disabled:hover:bg-transparent
+                        disabled:hover:text-current
+                      "
+                    >
+
+                      −
+
+                    </button>
+
+
+                    <input
+                      type="number"
+                      min="1"
+                      max={
+                        supply.stock
+                      }
+                      value={
+                        quantity
+                      }
+                      onChange={event =>
+                        handleQuantityChange(
+                          event.target.value
+                        )
+                      }
+                      className="
+                        flex-1
+                        h-14
+                        text-center
+                        border-x
+                        outline-none
+                        text-lg
+                      "
+                    />
+
+
+                    <button
+                      type="button"
+                      onClick={
+                        increaseQuantity
+                      }
+                      disabled={
+                        quantity >=
+                        supply.stock
+                      }
+                      className="
+                        w-16
+                        h-14
+                        text-xl
+                        hover:bg-black
+                        hover:text-white
+                        transition
+                        disabled:opacity-30
+                        disabled:hover:bg-transparent
+                        disabled:hover:text-current
+                      "
+                    >
+
+                      +
+
+                    </button>
+
+                  </div>
+
+
+                  <p className="
+                    text-xs
+                    opacity-40
+                    mt-2
+                  ">
+
+                    Maximum quantity:
+                    {" "}
+                    {supply.stock}
+
+                  </p>
+
+                </div>
+
+
+                {/* TOTAL */}
+
+                <div className="
+                  flex
+                  justify-between
+                  items-center
+                  border-t
+                  pt-5
+                  mb-5
+                ">
+
+                  <span className="
+                    text-sm
+                    uppercase
+                    tracking-[0.2em]
+                    opacity-50
+                  ">
+
+                    Total
+
+                  </span>
+
+
+                  <span className="
+                    text-2xl
+                  ">
+
+                    {totalPrice.toLocaleString(
+                      "sv-SE"
+                    )}{" "}
+                    SEK
+
+                  </span>
+
+                </div>
+
+
+                {/* CHECKOUT */}
 
                 <button
                   type="button"
@@ -708,7 +1001,13 @@ export default function SharpeningSupplyDetail() {
 
                     ? "Redirecting to Checkout..."
 
-                    : `Purchase This Product — ${supply.price} SEK`
+                    : `Purchase ${quantity} ${
+                        quantity === 1
+                          ? "Unit"
+                          : "Units"
+                      } — ${totalPrice.toLocaleString(
+                        "sv-SE"
+                      )} SEK`
 
                   }
 
@@ -744,7 +1043,7 @@ export default function SharpeningSupplyDetail() {
                   opacity-60
                 ">
 
-                  This product is not currently available
+                  This product is currently sold out
 
                 </p>
 
@@ -763,4 +1062,3 @@ export default function SharpeningSupplyDetail() {
   );
 
 }
-

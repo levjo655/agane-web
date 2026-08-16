@@ -3,8 +3,6 @@ import {
   Route
 } from "react-router-dom";
 
-import NewSharpeningSupply from "./pages/NewSharpeningSupply";
-
 import Home from "./pages/Home";
 import Shop from "./pages/Shop";
 import KnifeDetail from "./pages/KnifeDetail";
@@ -28,6 +26,9 @@ import EditMaker from "./pages/EditMaker";
 
 import NewCollaboration from "./pages/NewCollaboration";
 import EditCollaboration from "./pages/EditCollaboration";
+
+import NewSharpeningSupply from "./pages/NewSharpeningSupply";
+import EditSharpeningSupply from "./pages/EditSharpeningSupply";
 
 import PaymentSuccess from "./pages/PaymentSuccess";
 
@@ -58,9 +59,6 @@ function App() {
             PUBLIC
         ================================================== */}
 
-
-        {/* HOME */}
-
         <Route
           path="/"
           element={
@@ -81,10 +79,22 @@ function App() {
         />
 
 
+        {/* KNIFE */}
+
         <Route
           path="/shop/:slug"
           element={
             <KnifeDetail />
+          }
+        />
+
+
+        {/* SHARPENING SUPPLIES */}
+
+        <Route
+          path="/shop/supplies/:slug"
+          element={
+            <SharpeningSupplyDetail />
           }
         />
 
@@ -185,14 +195,30 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+
+        {/* ==================================================
+            ADMIN — SHARPENING SUPPLIES
+        ================================================== */}
+
         <Route
-  path="/admin/sharpening-supply/new"
-  element={
-    <ProtectedRoute>
-      <NewSharpeningSupply />
-    </ProtectedRoute>
-  }
-/>
+          path="/admin/sharpening-supply/new"
+          element={
+            <ProtectedRoute>
+              <NewSharpeningSupply />
+            </ProtectedRoute>
+          }
+        />
+
+
+        <Route
+          path="/admin/sharpening-supply/:id/edit"
+          element={
+            <ProtectedRoute>
+              <EditSharpeningSupply />
+            </ProtectedRoute>
+          }
+        />
 
 
         {/* ==================================================
@@ -243,7 +269,7 @@ function App() {
         />
 
 
-        {/* Backwards compatible */}
+        {/* BACKWARDS COMPATIBLE */}
 
         <Route
           path="/admin/makers/new"
@@ -253,12 +279,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route
-  path="/shop/supplies/:slug"
-  element={
-    <SharpeningSupplyDetail />
-  }
-/>
 
 
         {/* ==================================================

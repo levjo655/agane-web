@@ -1,4 +1,3 @@
-
 import { Router } from "express";
 import { prisma } from "../prisma";
 import upload from "../middleware/upload";
@@ -95,7 +94,9 @@ router.get(
         });
 
 
-      res.json(supplies);
+      return res.json(
+        supplies
+      );
 
     } catch (error) {
 
@@ -105,7 +106,7 @@ router.get(
       );
 
 
-      res.status(500).json({
+      return res.status(500).json({
 
         error:
           "Failed fetching sharpening supplies"
@@ -182,7 +183,9 @@ router.get(
       }
 
 
-      res.json(supply);
+      return res.json(
+        supply
+      );
 
     } catch (error) {
 
@@ -192,7 +195,7 @@ router.get(
       );
 
 
-      res.status(500).json({
+      return res.status(500).json({
 
         error:
           "Failed loading sharpening supply"
@@ -222,9 +225,9 @@ router.post(
       );
 
 
-      // ------------------------------------------
-      // VALIDATE TITLE
-      // ------------------------------------------
+      // ==================================================
+      // TITLE
+      // ==================================================
 
       if (
         !req.body.title ||
@@ -241,9 +244,9 @@ router.post(
       }
 
 
-      // ------------------------------------------
-      // VALIDATE CATEGORY
-      // ------------------------------------------
+      // ==================================================
+      // CATEGORY
+      // ==================================================
 
       if (
         !req.body.category ||
@@ -260,9 +263,63 @@ router.post(
       }
 
 
-      // ------------------------------------------
-      // CREATE SLUG
-      // ------------------------------------------
+      // ==================================================
+      // PRICE
+      // ==================================================
+
+      const price =
+        req.body.price !== undefined &&
+        req.body.price !== "" &&
+        !isNaN(
+          Number(req.body.price)
+        )
+          ? Number(req.body.price)
+          : 0;
+
+
+      if (price <= 0) {
+
+        return res.status(400).json({
+
+          error:
+            "A valid price is required"
+
+        });
+
+      }
+
+
+      // ==================================================
+      // STOCK
+      // ==================================================
+
+      const stock =
+        req.body.stock !== undefined &&
+        req.body.stock !== "" &&
+        !isNaN(
+          Number(req.body.stock)
+        )
+          ? Math.floor(
+              Number(req.body.stock)
+            )
+          : 0;
+
+
+      if (stock < 0) {
+
+        return res.status(400).json({
+
+          error:
+            "Stock cannot be negative"
+
+        });
+
+      }
+
+
+      // ==================================================
+      // SLUG
+      // ==================================================
 
       const slug =
         await createUniqueSlug(
@@ -276,9 +333,9 @@ router.post(
       );
 
 
-      // ------------------------------------------
+      // ==================================================
       // IMAGES
-      // ------------------------------------------
+      // ==================================================
 
       const files =
         req.files as Express.Multer.File[];
@@ -291,22 +348,26 @@ router.post(
         ) || [];
 
 
-      // ------------------------------------------
-      // PRICE
-      // ------------------------------------------
+      // ==================================================
+      // STATUS
+      // ==================================================
 
-      const price =
-        req.body.price &&
-        !isNaN(
-          Number(req.body.price)
-        )
-          ? Number(req.body.price)
-          : 0;
+      let status =
+        req.body.status ||
+        "available";
 
 
-      // ------------------------------------------
+      if (stock === 0) {
+
+        status =
+          "sold-out";
+
+      }
+
+
+      // ==================================================
       // CREATE
-      // ------------------------------------------
+      // ==================================================
 
       const supply =
         await prisma.sharpeningSupply.create({
@@ -327,12 +388,12 @@ router.post(
 
             price,
 
+            stock,
+
             images:
               imagePaths,
 
-            status:
-              req.body.status ||
-              "available"
+            status
 
           }
 
@@ -344,11 +405,13 @@ router.post(
         supply.id,
         supply.title,
         supply.slug,
-        supply.price
+        supply.price,
+        supply.stock,
+        supply.status
       );
 
 
-      res.status(201).json(
+      return res.status(201).json(
         supply
       );
 
@@ -360,7 +423,7 @@ router.post(
       );
 
 
-      res.status(500).json({
+      return res.status(500).json({
 
         error:
           "Failed creating sharpening supply"
@@ -390,9 +453,9 @@ router.put(
           : req.params.id;
 
 
-      // ------------------------------------------
+      // ==================================================
       // FIND SUPPLY
-      // ------------------------------------------
+      // ==================================================
 
       const supply =
         await prisma.sharpeningSupply.findUnique({
@@ -416,9 +479,9 @@ router.put(
       }
 
 
-      // ------------------------------------------
-      // VALIDATE TITLE
-      // ------------------------------------------
+      // ==================================================
+      // TITLE
+      // ==================================================
 
       if (
         !req.body.title ||
@@ -435,9 +498,9 @@ router.put(
       }
 
 
-      // ------------------------------------------
-      // VALIDATE CATEGORY
-      // ------------------------------------------
+      // ==================================================
+      // CATEGORY
+      // ==================================================
 
       if (
         !req.body.category ||
@@ -454,9 +517,63 @@ router.put(
       }
 
 
-      // ------------------------------------------
+      // ==================================================
+      // PRICE
+      // ==================================================
+
+      const price =
+        req.body.price !== undefined &&
+        req.body.price !== "" &&
+        !isNaN(
+          Number(req.body.price)
+        )
+          ? Number(req.body.price)
+          : 0;
+
+
+      if (price <= 0) {
+
+        return res.status(400).json({
+
+          error:
+            "A valid price is required"
+
+        });
+
+      }
+
+
+      // ==================================================
+      // STOCK
+      // ==================================================
+
+      const stock =
+        req.body.stock !== undefined &&
+        req.body.stock !== "" &&
+        !isNaN(
+          Number(req.body.stock)
+        )
+          ? Math.floor(
+              Number(req.body.stock)
+            )
+          : supply.stock;
+
+
+      if (stock < 0) {
+
+        return res.status(400).json({
+
+          error:
+            "Stock cannot be negative"
+
+        });
+
+      }
+
+
+      // ==================================================
       // EXISTING IMAGES
-      // ------------------------------------------
+      // ==================================================
 
       let existingImages: string[] = [];
 
@@ -496,9 +613,9 @@ router.put(
       }
 
 
-      // ------------------------------------------
+      // ==================================================
       // NEW IMAGES
-      // ------------------------------------------
+      // ==================================================
 
       const files =
         req.files as Express.Multer.File[];
@@ -522,9 +639,9 @@ router.put(
       ];
 
 
-      // ------------------------------------------
+      // ==================================================
       // OLD IMAGES
-      // ------------------------------------------
+      // ==================================================
 
       const oldImages: string[] =
 
@@ -544,9 +661,9 @@ router.put(
           : [];
 
 
-      // ------------------------------------------
+      // ==================================================
       // SLUG
-      // ------------------------------------------
+      // ==================================================
 
       let slug =
         req.body.slug?.trim();
@@ -571,22 +688,26 @@ router.put(
       }
 
 
-      // ------------------------------------------
-      // PRICE
-      // ------------------------------------------
+      // ==================================================
+      // STATUS
+      // ==================================================
 
-      const price =
-        req.body.price &&
-        !isNaN(
-          Number(req.body.price)
-        )
-          ? Number(req.body.price)
-          : 0;
+      let status =
+        req.body.status ||
+        "available";
 
 
-      // ------------------------------------------
+      if (stock === 0) {
+
+        status =
+          "sold-out";
+
+      }
+
+
+      // ==================================================
       // UPDATE
-      // ------------------------------------------
+      // ==================================================
 
       const updatedSupply =
         await prisma.sharpeningSupply.update({
@@ -614,21 +735,21 @@ router.put(
 
             price,
 
+            stock,
+
             images:
               finalImages,
 
-            status:
-              req.body.status ||
-              "available"
+            status
 
           }
 
         });
 
 
-      // ------------------------------------------
+      // ==================================================
       // DELETE REMOVED IMAGES
-      // ------------------------------------------
+      // ==================================================
 
       const removedImages: string[] =
         oldImages.filter(
@@ -683,11 +804,14 @@ router.put(
         "SHARPENING SUPPLY UPDATED:",
         updatedSupply.id,
         updatedSupply.title,
-        updatedSupply.slug
+        updatedSupply.slug,
+        updatedSupply.price,
+        updatedSupply.stock,
+        updatedSupply.status
       );
 
 
-      res.json(
+      return res.json(
         updatedSupply
       );
 
@@ -699,7 +823,7 @@ router.put(
       );
 
 
-      res.status(500).json({
+      return res.status(500).json({
 
         error:
           "Failed updating sharpening supply"
@@ -728,9 +852,9 @@ router.delete(
           : req.params.id;
 
 
-      // ------------------------------------------
+      // ==================================================
       // FIND SUPPLY
-      // ------------------------------------------
+      // ==================================================
 
       const supply =
         await prisma.sharpeningSupply.findUnique({
@@ -757,9 +881,9 @@ router.delete(
       }
 
 
-      // ------------------------------------------
+      // ==================================================
       // DELETE IMAGES
-      // ------------------------------------------
+      // ==================================================
 
       const images: string[] =
 
@@ -817,9 +941,9 @@ router.delete(
       );
 
 
-      // ------------------------------------------
+      // ==================================================
       // DELETE DATABASE RECORD
-      // ------------------------------------------
+      // ==================================================
 
       await prisma.sharpeningSupply.delete({
 
@@ -839,7 +963,7 @@ router.delete(
       );
 
 
-      res.json({
+      return res.json({
 
         message:
           "Sharpening supply deleted"
@@ -854,7 +978,7 @@ router.delete(
       );
 
 
-      res.status(500).json({
+      return res.status(500).json({
 
         error:
           "Failed deleting sharpening supply"
@@ -868,4 +992,3 @@ router.delete(
 
 
 export default router;
-
