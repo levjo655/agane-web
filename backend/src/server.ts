@@ -1,3 +1,4 @@
+
 import express from "express";
 import cors from "cors";
 import path from "path";
@@ -6,23 +7,27 @@ import knivesRouter from "./routes/knives";
 import collaborationRoutes from "./routes/collaborations";
 import makerRoutes from "./routes/makers";
 import stripeRoutes from "./routes/stripe";
+import sharpeningSuppliesRouter from "./routes/sharpeningSupplies";
 
 
 const app = express();
 
 
-// ==========================
+// ==================================================
 // CORS
-// ==========================
+// ==================================================
 
 app.use(cors());
 
 
-// ==========================
+// ==================================================
 // STRIPE WEBHOOK
 // IMPORTANT:
-// MUST COME BEFORE express.json()
-// ==========================
+// Stripe requires the raw request body for
+// webhook signature verification.
+//
+// This MUST come BEFORE express.json()
+// ==================================================
 
 app.use(
   "/api/stripe/webhook",
@@ -32,28 +37,36 @@ app.use(
 );
 
 
-// ==========================
+// ==================================================
 // JSON
-// ==========================
+// ==================================================
 
 app.use(express.json());
 
 
-// ==========================
+// ==================================================
 // STATIC FILES
-// ==========================
+// ==================================================
 
 app.use(
   "/uploads",
   express.static(
-    path.join(__dirname, "../uploads")
+    path.join(
+      __dirname,
+      "../uploads"
+    )
   )
+);
+app.use(
+  "/api/sharpening-supplies",
+  sharpeningSuppliesRouter
 );
 
 
-// ==========================
-// API ROUTES
-// ==========================
+
+// ==================================================
+// STRIPE ROUTES
+// ==================================================
 
 app.use(
   "/api/stripe",
@@ -61,11 +74,19 @@ app.use(
 );
 
 
+// ==================================================
+// KNIFE ROUTES
+// ==================================================
+
 app.use(
   "/api/knives",
   knivesRouter
 );
 
+
+// ==================================================
+// COLLABORATION ROUTES
+// ==================================================
 
 app.use(
   "/api/collaborations",
@@ -73,23 +94,30 @@ app.use(
 );
 
 
+// ==================================================
+// MAKER ROUTES
+// ==================================================
+
 app.use(
   "/api/makers",
   makerRoutes
 );
 
 
-// ==========================
+// ==================================================
 // SERVER
-// ==========================
+// ==================================================
+
+const PORT = 8080;
 
 app.listen(
-  8080,
+  PORT,
   () => {
 
     console.log(
-      "Ågane API running on port 8080"
+      `Ågane API running on port ${PORT}`
     );
 
   }
 );
+

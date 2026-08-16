@@ -1,3 +1,4 @@
+
 import {
   useEffect,
   useState
@@ -17,59 +18,67 @@ import {
 // ==========================
 
 type Maker = {
-
   id: string;
-
   name: string;
-
   slug: string;
-
   country?: string;
-
   bio?: string;
-
   image?: string | null;
-
 };
 
 
 type Knife = {
-
   id: string;
-
   title: string;
-
+  slug?: string;
   price: number;
-
   status: string;
-
   images: string[];
-
   maker?: Maker;
-
 };
 
 
 type Collaboration = {
-
   id: string;
-
   title: string;
-
   quantity: number;
-
   status: string;
-
   description?: string;
-
   image?: string | null;
-
   releaseDate?: string | null;
-
   maker?: Maker;
-
 };
 
+
+type SharpeningSupply = {
+  id: string;
+  title: string;
+  slug: string;
+  category: string;
+  description?: string | null;
+  price: number;
+  images: string[];
+  status: string;
+  createdAt: string;
+};
+
+
+type Order = {
+  id: string;
+  knifeId: string;
+  stripeSessionId: string;
+
+  customerEmail?: string | null;
+  customerName?: string | null;
+
+  amount: number;
+  currency: string;
+  status: string;
+
+  createdAt: string;
+
+  knife?: Knife;
+};
 
 
 // ==========================
@@ -78,16 +87,17 @@ type Collaboration = {
 
 export default function Admin() {
 
-
-  const navigate =
-    useNavigate();
-
+  const navigate = useNavigate();
 
   const {
     user,
     logout
   } = useAuth0();
 
+
+  // ==========================
+  // STATE
+  // ==========================
 
   const [loading, setLoading] =
     useState(true);
@@ -105,6 +115,13 @@ export default function Admin() {
     useState<Collaboration[]>([]);
 
 
+  const [sharpeningSupplies, setSharpeningSupplies] =
+    useState<SharpeningSupply[]>([]);
+
+
+  const [orders, setOrders] =
+    useState<Order[]>([]);
+
 
   // ==========================
   // LOAD DATA
@@ -113,7 +130,6 @@ export default function Admin() {
   async function loadData() {
 
     try {
-
 
       // ==========================
       // MAKERS
@@ -134,7 +150,6 @@ export default function Admin() {
         setMakers(makersData);
 
       }
-
 
 
       // ==========================
@@ -158,7 +173,6 @@ export default function Admin() {
       }
 
 
-
       // ==========================
       // COLLABORATIONS
       // ==========================
@@ -180,13 +194,56 @@ export default function Admin() {
       }
 
 
+      // ==========================
+      // SHARPENING SUPPLIES
+      // ==========================
+
+      const suppliesResponse =
+        await fetch(
+          "http://localhost:8080/api/sharpening-supplies"
+        );
+
+
+      const suppliesData =
+        await suppliesResponse.json();
+
+
+      if (Array.isArray(suppliesData)) {
+
+        setSharpeningSupplies(
+          suppliesData
+        );
+
+      }
+
+
+      // ==========================
+      // ORDERS
+      // ==========================
+
+      const ordersResponse =
+        await fetch(
+          "http://localhost:8080/api/stripe/orders"
+        );
+
+
+      const ordersData =
+        await ordersResponse.json();
+
+
+      if (Array.isArray(ordersData)) {
+
+        setOrders(ordersData);
+
+      }
+
+
     } catch (error) {
 
       console.error(
         "ADMIN LOAD ERROR",
         error
       );
-
 
     } finally {
 
@@ -197,13 +254,11 @@ export default function Admin() {
   }
 
 
-
   useEffect(() => {
 
     loadData();
 
   }, []);
-
 
 
   // ==========================
@@ -213,7 +268,6 @@ export default function Admin() {
   async function deleteMaker(
     id: string
   ) {
-
 
     if (
       !confirm(
@@ -274,12 +328,10 @@ export default function Admin() {
 
 
       setMakers(prev =>
-
         prev.filter(
           maker =>
             maker.id !== id
         )
-
       );
 
 
@@ -300,7 +352,6 @@ export default function Admin() {
   }
 
 
-
   // ==========================
   // DELETE KNIFE
   // ==========================
@@ -308,7 +359,6 @@ export default function Admin() {
   async function deleteKnife(
     id: string
   ) {
-
 
     if (
       !confirm(
@@ -345,12 +395,10 @@ export default function Admin() {
 
 
       setKnives(prev =>
-
         prev.filter(
           knife =>
             knife.id !== id
         )
-
       );
 
 
@@ -361,10 +409,14 @@ export default function Admin() {
         error
       );
 
+
+      alert(
+        "Failed deleting knife"
+      );
+
     }
 
   }
-
 
 
   // ==========================
@@ -374,7 +426,6 @@ export default function Admin() {
   async function deleteCollaboration(
     id: string
   ) {
-
 
     if (
       !confirm(
@@ -411,12 +462,10 @@ export default function Admin() {
 
 
       setCollaborations(prev =>
-
         prev.filter(
           item =>
             item.id !== id
         )
-
       );
 
 
@@ -427,10 +476,126 @@ export default function Admin() {
         error
       );
 
+
+      alert(
+        "Failed deleting collaboration"
+      );
+
     }
 
   }
 
+
+  // ==========================
+  // DELETE SHARPENING SUPPLY
+  // ==========================
+
+  async function deleteSharpeningSupply(
+    id: string
+  ) {
+
+    if (
+      !confirm(
+        "Delete this sharpening supply?"
+      )
+    ) {
+
+      return;
+
+    }
+
+
+    try {
+
+      const response =
+        await fetch(
+
+          `http://localhost:8080/api/sharpening-supplies/${id}`,
+
+          {
+            method: "DELETE"
+          }
+
+        );
+
+
+      if (!response.ok) {
+
+        let message =
+          "Failed deleting sharpening supply";
+
+
+        try {
+
+          const data =
+            await response.json();
+
+
+          if (data.error) {
+
+            message =
+              data.error;
+
+          }
+
+        } catch {
+
+          // Ignore JSON parsing error
+
+        }
+
+
+        throw new Error(
+          message
+        );
+
+      }
+
+
+      setSharpeningSupplies(prev =>
+        prev.filter(
+          supply =>
+            supply.id !== id
+        )
+      );
+
+
+    } catch (error) {
+
+      console.error(
+        "DELETE SHARPENING SUPPLY ERROR",
+        error
+      );
+
+
+      alert(
+        "Failed deleting sharpening supply"
+      );
+
+    }
+
+  }
+
+
+  // ==========================
+  // FORMAT ORDER DATE
+  // ==========================
+
+  function formatDate(
+    date: string
+  ) {
+
+    return new Date(
+      date
+    ).toLocaleString(
+      "en-SE",
+      {
+        dateStyle: "medium",
+        timeStyle: "short"
+      }
+    );
+
+  }
 
 
   // ==========================
@@ -446,7 +611,6 @@ export default function Admin() {
       px-6
       py-16
     ">
-
 
       <div className="
         max-w-7xl
@@ -464,7 +628,6 @@ export default function Admin() {
           items-center
           mb-16
         ">
-
 
           <div>
 
@@ -491,7 +654,6 @@ export default function Admin() {
           </div>
 
 
-
           <button
             onClick={() =>
               logout()
@@ -510,9 +672,7 @@ export default function Admin() {
 
           </button>
 
-
         </header>
-
 
 
         {/* ==========================
@@ -532,13 +692,13 @@ export default function Admin() {
         )}
 
 
-
         {/* ==================================================
-            MAKERS
+            ORDERS
         ================================================== */}
 
-        <section>
-
+        <section className="
+          mb-32
+        ">
 
           <div className="
             flex
@@ -547,6 +707,298 @@ export default function Admin() {
             mb-10
           ">
 
+            <div>
+
+              <h2 className="
+                text-4xl
+                font-serif
+              ">
+
+                Orders
+
+              </h2>
+
+
+              <p className="
+                mt-2
+                opacity-60
+              ">
+
+                {orders.length}{" "}
+                {orders.length === 1
+                  ? "order"
+                  : "orders"}
+
+              </p>
+
+            </div>
+
+          </div>
+
+
+          {orders.length === 0 ? (
+
+            <div className="
+              border
+              p-10
+              bg-white
+            ">
+
+              <p className="
+                opacity-60
+              ">
+
+                No orders yet.
+
+              </p>
+
+            </div>
+
+          ) : (
+
+            <div className="
+              space-y-6
+            ">
+
+              {orders.map(
+                order => (
+
+                  <article
+                    key={order.id}
+                    className="
+                      bg-white
+                      border
+                      p-8
+                    "
+                  >
+
+                    <div className="
+                      grid
+                      md:grid-cols-[180px_1fr_auto]
+                      gap-8
+                      items-center
+                    ">
+
+                      {/* IMAGE */}
+
+                      <div>
+
+                        {order.knife?.images?.[0] ? (
+
+                          <img
+                            src={
+                              `http://localhost:8080${order.knife.images[0]}`
+                            }
+                            alt={
+                              order.knife.title
+                            }
+                            className="
+                              w-full
+                              h-36
+                              object-cover
+                            "
+                          />
+
+                        ) : (
+
+                          <div className="
+                            w-full
+                            h-36
+                            bg-agane-bg
+                            flex
+                            items-center
+                            justify-center
+                            opacity-50
+                          ">
+
+                            No image
+
+                          </div>
+
+                        )}
+
+                      </div>
+
+
+                      {/* ORDER INFORMATION */}
+
+                      <div>
+
+                        <p className="
+                          text-xs
+                          uppercase
+                          tracking-widest
+                          opacity-50
+                        ">
+
+                          Order
+
+                        </p>
+
+
+                        <h3 className="
+                          text-2xl
+                          font-serif
+                          mt-1
+                        ">
+
+                          {order.knife?.title ||
+                            "Unknown knife"}
+
+                        </h3>
+
+
+                        <p className="
+                          mt-2
+                          opacity-70
+                        ">
+
+                          Maker:{" "}
+
+                          {order.knife?.maker?.name ||
+                            "Unknown"}
+
+                        </p>
+
+
+                        <div className="
+                          mt-4
+                          space-y-1
+                          text-sm
+                        ">
+
+                          <p>
+
+                            Customer:{" "}
+
+                            <strong>
+
+                              {order.customerName ||
+                                "No name"}
+
+                            </strong>
+
+                          </p>
+
+
+                          <p>
+
+                            Email:{" "}
+
+                            {order.customerEmail ||
+                              "No email"}
+
+                          </p>
+
+
+                          <p>
+
+                            Date:{" "}
+
+                            {formatDate(
+                              order.createdAt
+                            )}
+
+                          </p>
+
+                        </div>
+
+                      </div>
+
+
+                      {/* PRICE / STATUS */}
+
+                      <div className="
+                        md:text-right
+                      ">
+
+                        <p className="
+                          text-3xl
+                          font-serif
+                        ">
+
+                          {(order.amount / 100)
+                            .toLocaleString(
+                              "sv-SE"
+                            )}{" "}
+
+                          {order.currency.toUpperCase()}
+
+                        </p>
+
+
+                        <p className="
+                          mt-3
+                          inline-block
+                          border
+                          px-4
+                          py-2
+                          text-xs
+                          uppercase
+                          tracking-widest
+                        ">
+
+                          {order.status}
+
+                        </p>
+
+
+                        <p className="
+                          mt-3
+                          text-xs
+                          opacity-40
+                          break-all
+                        ">
+
+                          {order.id}
+
+                        </p>
+
+                      </div>
+
+                    </div>
+
+
+                    {/* STRIPE SESSION */}
+
+                    <div className="
+                      mt-6
+                      pt-6
+                      border-t
+                      text-xs
+                      opacity-40
+                      break-all
+                    ">
+
+                      Stripe Session:{" "}
+                      {order.stripeSessionId}
+
+                    </div>
+
+                  </article>
+
+                )
+              )}
+
+            </div>
+
+          )}
+
+        </section>
+
+
+        {/* ==================================================
+            MAKERS
+        ================================================== */}
+
+        <section>
+
+          <div className="
+            flex
+            justify-between
+            items-center
+            mb-10
+          ">
 
             <h2 className="
               text-4xl
@@ -556,7 +1008,6 @@ export default function Admin() {
               Makers
 
             </h2>
-
 
 
             <button
@@ -579,9 +1030,7 @@ export default function Admin() {
 
             </button>
 
-
           </div>
-
 
 
           {makers.length === 0 ? (
@@ -602,7 +1051,6 @@ export default function Admin() {
               gap-10
             ">
 
-
               {makers.map(
                 maker => (
 
@@ -614,9 +1062,6 @@ export default function Admin() {
                       p-8
                     "
                   >
-
-
-                    {/* MAKER IMAGE */}
 
                     {maker.image ? (
 
@@ -655,9 +1100,6 @@ export default function Admin() {
                     )}
 
 
-
-                    {/* MAKER NAME */}
-
                     <h3 className="
                       text-3xl
                       font-serif
@@ -667,9 +1109,6 @@ export default function Admin() {
 
                     </h3>
 
-
-
-                    {/* COUNTRY */}
 
                     {maker.country && (
 
@@ -685,9 +1124,6 @@ export default function Admin() {
                     )}
 
 
-
-                    {/* BIO */}
-
                     {maker.bio && (
 
                       <p className="
@@ -702,15 +1138,11 @@ export default function Admin() {
                     )}
 
 
-
-                    {/* ACTIONS */}
-
                     <div className="
                       mt-6
                       flex
                       gap-3
                     ">
-
 
                       <button
                         onClick={() =>
@@ -731,7 +1163,6 @@ export default function Admin() {
                         Edit
 
                       </button>
-
 
 
                       <button
@@ -756,9 +1187,7 @@ export default function Admin() {
 
                       </button>
 
-
                     </div>
-
 
                   </article>
 
@@ -772,7 +1201,6 @@ export default function Admin() {
         </section>
 
 
-
         {/* ==================================================
             KNIVES
         ================================================== */}
@@ -781,14 +1209,12 @@ export default function Admin() {
           mt-32
         ">
 
-
           <div className="
             flex
             justify-between
             items-center
             mb-10
           ">
-
 
             <h2 className="
               text-4xl
@@ -798,7 +1224,6 @@ export default function Admin() {
               Knives
 
             </h2>
-
 
 
             <button
@@ -821,9 +1246,7 @@ export default function Admin() {
 
             </button>
 
-
           </div>
-
 
 
           {knives.length === 0 ? (
@@ -844,7 +1267,6 @@ export default function Admin() {
               gap-10
             ">
 
-
               {knives.map(
                 knife => (
 
@@ -856,9 +1278,6 @@ export default function Admin() {
                       p-6
                     "
                   >
-
-
-                    {/* KNIFE IMAGE */}
 
                     {knife.images?.[0] && (
 
@@ -879,9 +1298,6 @@ export default function Admin() {
                     )}
 
 
-
-                    {/* KNIFE TITLE */}
-
                     <h3 className="
                       text-2xl
                       font-serif
@@ -892,9 +1308,6 @@ export default function Admin() {
 
                     </h3>
 
-
-
-                    {/* MAKER */}
 
                     <p className="
                       mt-2
@@ -908,9 +1321,6 @@ export default function Admin() {
                     </p>
 
 
-
-                    {/* PRICE */}
-
                     <p className="
                       mt-1
                     ">
@@ -919,9 +1329,6 @@ export default function Admin() {
 
                     </p>
 
-
-
-                    {/* STATUS */}
 
                     <p className="
                       mt-1
@@ -934,15 +1341,11 @@ export default function Admin() {
                     </p>
 
 
-
-                    {/* ACTIONS */}
-
                     <div className="
                       mt-5
                       flex
                       gap-3
                     ">
-
 
                       <button
                         onClick={() =>
@@ -963,7 +1366,6 @@ export default function Admin() {
                         Edit
 
                       </button>
-
 
 
                       <button
@@ -988,9 +1390,7 @@ export default function Admin() {
 
                       </button>
 
-
                     </div>
-
 
                   </article>
 
@@ -1004,7 +1404,6 @@ export default function Admin() {
         </section>
 
 
-
         {/* ==================================================
             COLLABORATIONS
         ================================================== */}
@@ -1013,14 +1412,12 @@ export default function Admin() {
           mt-32
         ">
 
-
           <div className="
             flex
             justify-between
             items-center
             mb-10
           ">
-
 
             <h2 className="
               text-4xl
@@ -1030,7 +1427,6 @@ export default function Admin() {
               Collaborations
 
             </h2>
-
 
 
             <button
@@ -1053,9 +1449,7 @@ export default function Admin() {
 
             </button>
 
-
           </div>
-
 
 
           {collaborations.length === 0 ? (
@@ -1076,7 +1470,6 @@ export default function Admin() {
               gap-10
             ">
 
-
               {collaborations.map(
                 collab => (
 
@@ -1088,9 +1481,6 @@ export default function Admin() {
                       p-8
                     "
                   >
-
-
-                    {/* COLLAB IMAGE */}
 
                     {collab.image && (
 
@@ -1112,9 +1502,6 @@ export default function Admin() {
                     )}
 
 
-
-                    {/* COLLAB TITLE */}
-
                     <h3 className="
                       text-3xl
                       font-serif
@@ -1124,9 +1511,6 @@ export default function Admin() {
 
                     </h3>
 
-
-
-                    {/* MAKER */}
 
                     <p className="
                       mt-3
@@ -1140,22 +1524,15 @@ export default function Admin() {
                     </p>
 
 
-
-                    {/* QUANTITY */}
-
                     <p className="
                       mt-2
                     ">
 
                       {collab.quantity}{" "}
-
                       pieces
 
                     </p>
 
-
-
-                    {/* STATUS */}
 
                     <p className="
                       mt-2
@@ -1167,9 +1544,6 @@ export default function Admin() {
 
                     </p>
 
-
-
-                    {/* RELEASE DATE */}
 
                     {collab.releaseDate && (
 
@@ -1189,15 +1563,11 @@ export default function Admin() {
                     )}
 
 
-
-                    {/* ACTIONS */}
-
                     <div className="
                       mt-6
                       flex
                       gap-3
                     ">
-
 
                       <button
                         onClick={() =>
@@ -1218,7 +1588,6 @@ export default function Admin() {
                         Edit
 
                       </button>
-
 
 
                       <button
@@ -1243,9 +1612,285 @@ export default function Admin() {
 
                       </button>
 
-
                     </div>
 
+                  </article>
+
+                )
+              )}
+
+            </div>
+
+          )}
+
+        </section>
+
+
+        {/* ==================================================
+            SHARPENING SUPPLIES
+        ================================================== */}
+
+        <section className="
+          mt-32
+        ">
+
+          <div className="
+            flex
+            justify-between
+            items-center
+            mb-10
+          ">
+
+            <div>
+
+              <p className="
+                text-xs
+                uppercase
+                tracking-[0.3em]
+                opacity-50
+                mb-3
+              ">
+
+                Shop
+
+              </p>
+
+
+              <h2 className="
+                text-4xl
+                font-serif
+              ">
+
+                Sharpening Supplies
+
+              </h2>
+
+            </div>
+
+
+            <button
+              onClick={() =>
+                navigate(
+                  "/admin/sharpening-supply/new"
+                )
+              }
+              className="
+                border
+                px-6
+                py-3
+                hover:bg-black
+                hover:text-white
+                transition
+              "
+            >
+
+              + Add Sharpening Supply
+
+            </button>
+
+          </div>
+
+
+          {sharpeningSupplies.length === 0 ? (
+
+            <div className="
+              border
+              p-10
+              bg-white
+            ">
+
+              <p className="
+                opacity-60
+              ">
+
+                No sharpening supplies yet.
+
+              </p>
+
+            </div>
+
+          ) : (
+
+            <div className="
+              grid
+              md:grid-cols-3
+              gap-10
+            ">
+
+              {sharpeningSupplies.map(
+                supply => (
+
+                  <article
+                    key={supply.id}
+                    className="
+                      bg-white
+                      border
+                      p-6
+                    "
+                  >
+
+                    {/* IMAGE */}
+
+                    {supply.images?.[0] ? (
+
+                      <img
+                        src={
+                          `http://localhost:8080${supply.images[0]}`
+                        }
+                        alt={
+                          supply.title
+                        }
+                        className="
+                          h-64
+                          w-full
+                          object-cover
+                        "
+                      />
+
+                    ) : (
+
+                      <div className="
+                        h-64
+                        w-full
+                        bg-agane-bg
+                        flex
+                        items-center
+                        justify-center
+                        opacity-50
+                      ">
+
+                        No image
+
+                      </div>
+
+                    )}
+
+
+                    {/* CATEGORY */}
+
+                    <p className="
+                      mt-5
+                      text-xs
+                      uppercase
+                      tracking-[0.25em]
+                      opacity-50
+                    ">
+
+                      {supply.category}
+
+                    </p>
+
+
+                    {/* TITLE */}
+
+                    <h3 className="
+                      text-2xl
+                      font-serif
+                      mt-2
+                    ">
+
+                      {supply.title}
+
+                    </h3>
+
+
+                    {/* PRICE */}
+
+                    <p className="
+                      mt-3
+                    ">
+
+                      {supply.price.toLocaleString(
+                        "sv-SE"
+                      )}{" "}
+                      SEK
+
+                    </p>
+
+
+                    {/* STATUS */}
+
+                    <p className="
+                      mt-1
+                      opacity-60
+                      capitalize
+                    ">
+
+                      {supply.status}
+
+                    </p>
+
+
+                    {/* DESCRIPTION */}
+
+                    {supply.description && (
+
+                      <p className="
+                        mt-4
+                        text-sm
+                        opacity-60
+                        line-clamp-3
+                      ">
+
+                        {supply.description}
+
+                      </p>
+
+                    )}
+
+
+                    {/* ACTIONS */}
+
+                    <div className="
+                      mt-6
+                      flex
+                      gap-3
+                    ">
+
+                      <button
+                        onClick={() =>
+                          navigate(
+                            `/admin/sharpening-supply/${supply.id}/edit`
+                          )
+                        }
+                        className="
+                          border
+                          px-4
+                          py-2
+                          hover:bg-black
+                          hover:text-white
+                          transition
+                        "
+                      >
+
+                        Edit
+
+                      </button>
+
+
+                      <button
+                        onClick={() =>
+                          deleteSharpeningSupply(
+                            supply.id
+                          )
+                        }
+                        className="
+                          border
+                          border-red-600
+                          text-red-600
+                          px-4
+                          py-2
+                          hover:bg-red-600
+                          hover:text-white
+                          transition
+                        "
+                      >
+
+                        Delete
+
+                      </button>
+
+                    </div>
 
                   </article>
 
@@ -1266,3 +1911,4 @@ export default function Admin() {
   );
 
 }
+

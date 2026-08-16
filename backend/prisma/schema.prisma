@@ -7,9 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model Maker {
-
   id String @id @default(uuid())
 
   name String
@@ -31,12 +29,9 @@ model Maker {
   collaborations Collaboration[]
 
   createdAt DateTime @default(now())
-
 }
 
-
 model Knife {
-
   id String @id @default(uuid())
 
   title String
@@ -45,10 +40,7 @@ model Knife {
 
   makerId String?
 
-  maker Maker? @relation(
-    fields: [makerId],
-    references: [id]
-  )
+  maker Maker? @relation(fields: [makerId], references: [id])
 
   origin String?
 
@@ -73,20 +65,35 @@ model Knife {
   order Order?
 
   createdAt DateTime @default(now())
+}
+model SharpeningSupply {
+  id String @id @default(uuid())
 
+  title String
+
+  slug String @unique
+
+  category String
+
+  description String?
+
+  price Int
+
+  images Json
+
+  status String @default("available")
+
+  order Order?
+
+  createdAt DateTime @default(now())
 }
 
-
 model Collaboration {
-
   id String @id @default(uuid())
 
   makerId String?
 
-  maker Maker? @relation(
-    fields: [makerId],
-    references: [id]
-  )
+  maker Maker? @relation(fields: [makerId], references: [id])
 
   title String
 
@@ -101,18 +108,17 @@ model Collaboration {
   image String?
 
   createdAt DateTime @default(now())
-
 }
 
-
 model Order {
-
   id String @id @default(uuid())
 
-  knifeId String @unique
+  knifeId String? @unique
+  knife Knife? @relation(fields: [knifeId], references: [id])
 
-  knife Knife @relation(
-    fields: [knifeId],
+  sharpeningSupplyId String? @unique
+  sharpeningSupply SharpeningSupply? @relation(
+    fields: [sharpeningSupplyId],
     references: [id]
   )
 
@@ -129,5 +135,4 @@ model Order {
   status String @default("pending")
 
   createdAt DateTime @default(now())
-
 }

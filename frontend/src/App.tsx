@@ -3,9 +3,12 @@ import {
   Route
 } from "react-router-dom";
 
+import NewSharpeningSupply from "./pages/NewSharpeningSupply";
+
 import Home from "./pages/Home";
 import Shop from "./pages/Shop";
 import KnifeDetail from "./pages/KnifeDetail";
+import SharpeningSupplyDetail from "./pages/SharpeningSupplyDetail";
 
 import Collaborations from "./pages/Collaborations";
 import CollaborationDetail from "./pages/CollaborationDetail";
@@ -182,6 +185,14 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+  path="/admin/sharpening-supply/new"
+  element={
+    <ProtectedRoute>
+      <NewSharpeningSupply />
+    </ProtectedRoute>
+  }
+/>
 
 
         {/* ==================================================
@@ -242,6 +253,12 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+  path="/shop/supplies/:slug"
+  element={
+    <SharpeningSupplyDetail />
+  }
+/>
 
 
         {/* ==================================================
